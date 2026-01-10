@@ -1,8 +1,6 @@
 # Formazing - Training Management App
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
 
-![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)
-
 ![Personal](https://img.shields.io/badge/Project-Personal-orange)
 
 A clear and linear guide to managing training sessions in 3 clicks, without stress and without errors.
