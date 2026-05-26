@@ -86,7 +86,7 @@ class NotionDataParser:
             
             # Validazione campi critici
             if not all([nome, area_list, data_ora, status, notion_id]):
-                logger.warning(f"⚠️ Formazione incompleta")
+                logger.debug(f"⚠️ Formazione incompleta (ID: {notion_id[:8] if notion_id else 'N/A'})")
                 # Stampa dettagli per debug
                 for field, value in {
                     'ID': notion_id,
@@ -96,7 +96,7 @@ class NotionDataParser:
                     'Stato': status
                 }.items():
                     if not value:
-                        logger.warning(f"  - Mancante: {field}") 
+                        logger.debug(f"  - Mancante: {field}") 
                 
                 return None
             
