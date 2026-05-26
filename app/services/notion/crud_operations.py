@@ -56,6 +56,10 @@ class NotionCrudOperations:
         Returns:
             bool: True se aggiornamento successful
         """
+        if not notion_id:
+            logger.error("❌ notion_id nullo in update_formazione_status")
+            return False
+            
         logger.info(f"Aggiorno status | ID: ...{notion_id[-8:]} | Status: {new_status}")
         
         try:
