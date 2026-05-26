@@ -128,7 +128,9 @@ async def verify_telegram_connection():
         
         # Ottieni info del bot usando l'API diretta di python-telegram-bot
         try:
-            bot_info = await telegram.bot.get_me()
+            import telegram as tg
+            async with tg.Bot(token=telegram_token) as bot:
+                bot_info = await bot.get_me()
             print(f"✅ Bot connesso: @{bot_info.username} (ID: {bot_info.id})")
             print(f"   📛 Nome: {bot_info.first_name}")
         except Exception as e:
