@@ -66,7 +66,7 @@ class NotionQueryBuilder:
             "sorts": [
                 {
                     "property": "Date",
-                    "direction": "ascending"
+                    "direction": "descending" if status == "Conclusa" else "ascending"
                 }
             ],
             "page_size": self.default_page_size
