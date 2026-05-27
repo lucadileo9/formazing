@@ -1,0 +1,17 @@
+<nav class="navbar-jemore">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('main.dashboard') }}" class="navbar-brand">
+            <img src="{{ url_for('static', filename='images/logo_jemore.png') }}" alt="JEMORE">
+        </a>
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('main.dashboard') }}" 
+               class="nav-link-jemore">
+                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+            <a href="/tutorial" 
+               class="nav-link-jemore">
+                <i class="bi bi-info-circle me-1"></i> Tutorial
+            </a>
+        </div>
+    </div>
+</nav>
