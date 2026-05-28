@@ -17,33 +17,33 @@
         {# Matching robusto case-insensitive #}
         {% if 'IT' in area_upper %}
             {% set color = 'bg-primary' %}
-            {% set icon = 'bi bi-laptop' %}
+            {% set icon = '' %}
         {% elif 'R&D' in area_upper or 'R&amp;D' in area_upper %}
             {% set color = 'bg-danger' %}
-            {% set icon = 'bi bi-lightbulb' %}
+            {% set icon = '' %}
         {% elif 'MARKETING' in area_upper %}
             {% set color = 'bg-purple' %}
-            {% set icon = 'bi bi-megaphone' %}
+            {% set icon = '' %}
         {% elif 'COMMERCIALE' in area_upper or 'SALES' in area_upper %}
             {% set color = 'text-bg-warning' %}
-            {% set icon = 'bi bi-briefcase' %}
+            {% set icon = '' %}
         {% elif 'LEGAL' in area_upper or 'LEGALE' in area_upper %}
             {% set color = 'bg-brown' %}
-            {% set icon = 'bi bi-shield-check' %}
+            {% set icon = '' %}
         {% elif 'HR' in area_upper %}
             {% set color = 'bg-success' %}
-            {% set icon = 'bi bi-people' %}
+            {% set icon = '' %}
         {% elif 'ALL' in area_upper or 'TUTTI' in area_upper %}
             {% set color = 'bg-pink' %}
-            {% set icon = 'bi bi-grid' %}
+            {% set icon = '' %}
         {% elif area == 'N/A' or not area %}
             {% set color = 'bg-secondary' %}
-            {% set icon = 'bi bi-dash-circle' %}
+            {% set icon = '' %}
             {% set text = 'Non specificata' %}
         {% else %}
             {# Fallback con colore neutro per valori sconosciuti #}
             {% set color = 'bg-secondary text-light' %}
-            {% set icon = 'bi bi-tag' %}
+            {% set icon = '' %}
         {% endif %}
         
         {% include 'atoms/badge.html' %}
@@ -69,27 +69,27 @@
         {# Matching più robusto con varianti multiple #}
         {% if 'SPRING' in periodo_upper or 'PRIMAV' in periodo_upper %}
             {% set color = 'bg-success' %}
-            {% set icon = 'bi bi-flower1' %}
+            {% set icon = '' %}
         {% elif 'AUTUMN' in periodo_upper or 'AUTUN' in periodo_upper or 'FALL' in periodo_upper %}
             {% set color = 'bg-brown' %}
-            {% set icon = 'bi bi-leaf' %}
+            {% set icon = '' %}
         {% elif 'ONCE' in periodo_upper or 'UNA' in periodo_upper or 'TANTUM' in periodo_upper %}
             {% set color = 'text-bg-dark' %}
-            {% set icon = 'bi bi-calendar-check' %}
+            {% set icon = '' %}
         {% elif 'EXT' in periodo_upper or 'EXTERN' in periodo_upper or 'FUORI' in periodo_upper %}
             {% set color = 'bg-pink' %}
-            {% set icon = 'bi bi-box-arrow-up-right' %}
+            {% set icon = '' %}
         {% elif 'OUT' in periodo_upper or 'PROGRAM' in periodo_upper %}
             {% set color = 'bg-warning' %}
-            {% set icon = 'bi bi-exclamation-octagon' %}
+            {% set icon = '' %}
         {% elif periodo == 'N/A' or not periodo %}
             {% set color = 'bg-secondary' %}
-            {% set icon = 'bi bi-dash-circle' %}
+            {% set icon = '' %}
             {% set text = 'Non specificato' %}
         {% else %}
             {# Fallback con colore neutro per valori sconosciuti #}
             {% set color = 'bg-secondary text-light' %}
-            {% set icon = 'bi bi-calendar3' %}
+            {% set icon = '' %}
         {% endif %}
         
         {% include 'atoms/badge.html' %}
@@ -130,8 +130,8 @@
 <script>
 function showPreview(trainingId, actionType) {
     const titles = {
-        'notification': '📨 Generazione Preview Notifica',
-        'feedback': '📝 Generazione Preview Feedback'
+        'notification': 'Generazione Preview Notifica',
+        'feedback': 'Generazione Preview Feedback'
     };
     
     const messages = {
