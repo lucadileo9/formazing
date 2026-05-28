@@ -17,6 +17,8 @@ from config import Config
 import logging
 import traceback
 import asyncio
+import yaml
+import os
 
 # Logger per routes (configurazione centralizzata già attiva)
 logger = logging.getLogger(__name__)
@@ -99,6 +101,23 @@ async def dashboard():
         logger.error(f"❌ Errore imprevisto nella dashboard: {e}", exc_info=True)
         flash(f"❌ Errore imprevisto: {e}", 'error')
         return redirect(url_for('main.home'))
+
+
+@main.route('/tutorial')
+def tutorial():
+    """Pagina Tutorial e FAQ con dati da YAML."""
+    try:
+        faq_path = os.path.join(Config.BASE_DIR, 'config', 'faqs.yaml')
+        with open(faq_path, 'r', encoding='utf-8') as f:
+            faq_data = yaml.safe_load(f)
+        faqs = faq_data.get('faqs', [])
+    except Exception as e:
+        logger.error(f"❌ Errore caricamento FAQ: {e}")
+        faqs = []
+        
+    return render_template('pages/tutorial.html', 
+                         title='Tutorial & FAQ - Formazing',
+                         faqs=faqs)
 
 
 # === PAGINE PREVIEW CON FORM CONFERMA ===
