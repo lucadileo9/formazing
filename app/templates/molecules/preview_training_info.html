@@ -1,13 +1,13 @@
 <!-- 🧩 MOLECULE: Training information card -->
 {% macro training_info_card(training, action_type, codice_generato=None) %}
-<div class="card">
-    <div class="card-header bg-primary text-white">
-        <i class="bi bi-info-circle me-2"></i>Informazioni Formazione
+<div class="card-jemore shadow-sm">
+    <div class="card-header-jemore">
+        <i class="bi bi-info-circle me-2 text-blu-jemore"></i> Informazioni Formazione
     </div>
-    <div class="card-body">
+    <div class="card-body p-4">
         <dl class="row mb-0">
             <dt class="col-sm-3">Nome:</dt>
-            <dd class="col-sm-9 fw-bold">{{ training.Nome }}</dd>
+            <dd class="col-sm-9 fw-bold text-blu-jemore">{{ training.Nome }}</dd>
             
             <dt class="col-sm-3">Area:</dt>
             <dd class="col-sm-9">
@@ -16,6 +16,7 @@
                         {% for area in training.Area %}
                             {% set text = area %}
                             {% set color = 'bg-secondary' %}
+                            {% set size = 'extra-small' %}
                             {% include 'atoms/badge.html' %}
                         {% endfor %}
                     </div>
@@ -26,6 +27,7 @@
             
             <dt class="col-sm-3">Data:</dt>
             <dd class="col-sm-9">
+                <i class="bi bi-calendar3 me-2 text-muted"></i>
                 {{ training['Data/Ora'] if training['Data/Ora'] else '<span class="text-muted">N/A</span>' | safe }}
             </dd>
             
@@ -33,23 +35,22 @@
             <dd class="col-sm-9">
                 {% if training.Stato == 'Programmata' %}
                     {% set text = 'Programmata' %}
-                    {% set color = 'bg-warning' %}
-                    {% include 'atoms/badge.html' %}
+                    {% set color = 'badge-programmata' %}
                 {% elif training.Stato == 'Calendarizzata' %}
                     {% set text = 'Calendarizzata' %}
-                    {% set color = 'bg-info' %}
-                    {% include 'atoms/badge.html' %}
+                    {% set color = 'badge-calendarizzata' %}
                 {% else %}
                     {% set text = 'Conclusa' %}
                     {% set color = 'bg-success' %}
-                    {% include 'atoms/badge.html' %}
                 {% endif %}
+                {% set size = 'extra-small' %}
+                {% include 'atoms/badge.html' %}
             </dd>
             
             {% if action_type == 'notification' %}
                 <dt class="col-sm-3">Nuovo Codice:</dt>
                 <dd class="col-sm-9">
-                    <code class="user-select-all">{{ codice_generato }}</code>
+                    <code class="user-select-all px-2 py-1 bg-light rounded text-danger fw-bold border">{{ codice_generato }}</code>
                 </dd>
                 
                 {% if training.LinkTeams %}
@@ -57,8 +58,8 @@
                 <dd class="col-sm-9">
                     <a href="{{ training.LinkTeams }}" 
                        target="_blank" 
-                       class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-microsoft-teams"></i> Vai al meeting
+                       class="btn btn-sm btn-jemore-blu">
+                        <i class="bi bi-microsoft-teams me-1"></i> Vai al meeting
                     </a>
                 </dd>
                 {% endif %}
@@ -66,7 +67,7 @@
             {% elif training.Codice %}
                 <dt class="col-sm-3">Codice:</dt>
                 <dd class="col-sm-9">
-                    <code class="user-select-all">{{ training.Codice }}</code>
+                    <code class="user-select-all px-2 py-1 bg-light rounded border">{{ training.Codice }}</code>
                 </dd>
             {% endif %}
         </dl>

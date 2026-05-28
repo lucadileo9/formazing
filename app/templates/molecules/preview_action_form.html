@@ -1,67 +1,55 @@
 {% macro action_form(action_type, training_id, codice_generato, messages_count) %}
 
-<div class="alert alert-warning border-warning shadow-sm" role="alert">
-    <h5 class="alert-heading">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+<div class="alert bg-bianco-latte text-blu-jemore shadow-sm border-0" role="alert">
+    <h5 class="alert-heading fw-bold">
+        <i class="bi bi-exclamation-triangle-fill me-2 text-blu-jemore"></i>
         Azioni che verranno eseguite
     </h5>
     <hr>
     <ul class="mb-0">
         {% if action_type == 'notification' %}
-            <li>✅ Generazione codice univoco: <code class="text-danger">{{ codice_generato }}</code></li>
-            <li>✅ Creazione evento <strong>Microsoft Teams Calendar</strong></li>
-            <li>✅ Aggiornamento Notion: Stato → {% set text = 'Calendarizzata' %}{% set color = 'bg-info' %}{% include 'atoms/badge.html' %}</li>
-            <li>✅ Invio <strong>email</strong> con allegato Teams</li>
-            <li>✅ Invio messaggi <strong>Telegram</strong> a {{ messages_count }} gruppo{{ 'i' if messages_count != 1 else '' }}</li>
-        {% else %}
-            <li>✅ Invio richiesta feedback <strong>Telegram</strong> a {{ messages_count }} gruppo{{ 'i' if messages_count != 1 else '' }}</li>
-            <li>✅ Aggiornamento Notion: Stato → {% set text = 'Conclusa' %}{% set color = 'bg-success' %}{% include 'atoms/badge.html' %}</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Generazione codice univoco: <code class="text-danger">{{ codice_generato }}</code></li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Creazione evento <strong>Microsoft Teams Calendar</strong></li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Aggiornamento Notion: Stato → {% set text = 'Calendarizzata' %}{% set color = 'badge-calendarizzata' %}{% set size = 'extra-small' %}{% include 'atoms/badge.html' %}</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Invio <strong>email</strong> con allegato Teams</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Invio richiesta feedback <strong>Telegram</strong> a {{ messages_count }} grupp{{ 'i' if messages_count != 1 else 'o' }}</li>
+        {% elif action_type == 'feedback' %}
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Invio richiesta feedback <strong>Telegram</strong> a {{ messages_count }} grupp{{ 'i' if messages_count != 1 else 'o' }}</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Aggiornamento Notion: Stato → {% set text = 'Conclusa' %}{% set color = 'badge-conclusa' %}{% set size = 'extra-small' %}{% include 'atoms/badge.html' %}</li>
         {% endif %}
     </ul>
 </div>
 
-<div class="card border-0 shadow-sm mb-5">
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-6">
-                {% set text = 'Annulla e Torna alla Dashboard' %}
-                {% set variant = 'btn-secondary' %}
-                {% set size = 'btn-lg w-100 d-flex align-items-center justify-content-center' %}
-                {% set icon = 'bi bi-x-circle' %}
-                {% set onclick = "handleCancel()" %}
-                {% include 'atoms/button.html' %}
-            </div>
-            
-            <div class="col-md-6">
-                <form method="POST" 
-                      action="{{ url_for('main.confirm_notification' if action_type == 'notification' else 'main.confirm_feedback', training_id=training_id) }}"
-                      onsubmit="return handleConfirm(event, '{{ action_type }}', {{ messages_count }});"
-                      class="h-100">
-                    {% set text = 'Conferma e Invia' %}
-                    {% set variant = 'btn-success' %}
-                    {% set size = 'btn-lg w-100 h-100 d-flex align-items-center justify-content-center' %}
-                    {% set icon = 'bi bi-check-circle' %}
-                    {% set type = 'submit' %}
-                    {% include 'atoms/button.html' %}
-                </form>
-            </div>
-        </div>
-    </div>
+<div class="d-flex justify-content-center gap-3 mb-5">
+    {% set text = 'Annulla e torna' %}
+    {% set variant = 'btn-jemore-dark-blu' %}
+    {% set size = 'py-2 px-4 d-flex align-items-center justify-content-center' %}
+    {% set icon = 'none' %}
+    {% set onclick = "handleCancel()" %}
+    {% include 'atoms/button.html' %}
+    
+    <form method="POST" 
+          action="{{ url_for('main.confirm_notification' if action_type == 'notification' else 'main.confirm_feedback', training_id=training_id) }}"
+          onsubmit="return handleConfirm(event, '{{ action_type }}', {{ messages_count }});">
+        {% set text = 'Conferma e invia' %}
+        {% set variant = 'btn-jemore-giallo' %}
+        {% set size = 'py-2 px-4 d-flex align-items-center justify-content-center' %}
+        {% set icon = 'none' %}
+        {% set type = 'submit' %}
+        {% include 'atoms/button.html' %}
+    </form>
 </div>
 
 <script>
 function handleCancel() {
-    LoadingOverlay.show('🔙 Ritorno alla Dashboard', 'Annullamento operazione...');
+    LoadingOverlay.show('Ritorno alla Dashboard', 'Annullamento operazione...');
     window.location.href = "{{ url_for('main.dashboard') }}";
 }
 
 function handleConfirm(event, actionType, messagesCount) {
-    // Rimosso il 'confirm' per rendere l'azione immediata.
-    
-    // Mostra loading specifico per l'azione
     const titles = {
-        'notification': '📨 Invio Notifiche in Corso',
-        'feedback': '📝 Invio Richiesta Feedback'
+        'notification': 'Invio Notifiche in Corso',
+        'feedback': 'Invio Richiesta Feedback'
     };
     
     const messages = {
@@ -71,7 +59,7 @@ function handleConfirm(event, actionType, messagesCount) {
     
     LoadingOverlay.show(titles[actionType], messages[actionType]);
     
-    return true; // Permette al form di submitare
+    return true;
 }
 </script>
 

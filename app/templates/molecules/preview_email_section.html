@@ -1,24 +1,24 @@
 <!-- 🧩 MOLECULE: Email section card for notifications -->
 {% macro email_section_card(email) %}
 {% if email %}
-<div class="card">
-    <div class="card-header bg-success text-white">
-        <i class="bi bi-envelope me-2"></i>Email da Inviare
+<div class="card-jemore shadow-sm">
+    <div class="card-header-jemore">
+        <i class="bi bi-envelope me-2 text-blu-jemore"></i> Email da Inviare
     </div>
-    <div class="card-body">
+    <div class="card-body p-4">
         <div class="mb-3">
-            <strong class="d-block mb-1">Destinatari:</strong>
-            <span class="text-muted">{{ email.attendee_emails|join(', ') }}</span>
+            <strong class="d-block mb-1 text-blu-jemore">Destinatari:</strong>
+            <span class="small text-muted">{{ email.attendee_emails|join(', ') }}</span>
         </div>
         
         <div class="mb-3">
-            <strong class="d-block mb-1">Oggetto:</strong>
-            <span class="text-muted">{{ email.subject }}</span>
+            <strong class="d-block mb-1 text-blu-jemore">Oggetto:</strong>
+            <span class="text-muted fw-bold">{{ email.subject }}</span>
         </div>
         
         <div class="mb-0">
-            <strong class="d-block mb-2">Anteprima:</strong>
-            <div class="border rounded p-3 bg-light" style="max-height: 400px; overflow-y: auto; font-size: 0.9rem; line-height: 1.6;">
+            <strong class="d-block mb-2 text-blu-jemore">Anteprima Corpo:</strong>
+            <div class="border rounded p-4 bg-white shadow-inner" style="max-height: 400px; overflow-y: auto; font-size: 0.9rem; line-height: 1.6; color: #333;">
                 {{ email.body_preview | safe }}
             </div>
         </div>
