@@ -8,13 +8,15 @@
     <hr>
     <ul class="mb-0">
         {% if action_type == 'notification' %}
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Cambiamento stato su Notion: → {% set text = 'Calendarizzata' %}{% set color = 'badge-calendarizzata' %}{% set size = 'extra-small' %}{% include 'atoms/badge.html' %}</li>
             <li><i class="bi bi-check2-circle text-success me-2"></i> Generazione codice univoco: <code class="text-danger">{{ codice_generato }}</code></li>
-            <li><i class="bi bi-check2-circle text-success me-2"></i> Creazione evento <strong>Microsoft Teams Calendar</strong></li>
-            <li><i class="bi bi-check2-circle text-success me-2"></i> Aggiornamento Notion: Stato → {% set text = 'Calendarizzata' %}{% set color = 'badge-calendarizzata' %}{% set size = 'extra-small' %}{% include 'atoms/badge.html' %}</li>
-            <li><i class="bi bi-check2-circle text-success me-2"></i> Invio <strong>email</strong> con allegato Teams</li>
-            <li><i class="bi bi-check2-circle text-success me-2"></i> Invio richiesta feedback <strong>Telegram</strong> a {{ messages_count }} grupp{{ 'i' if messages_count != 1 else 'o' }}</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Creazione evento su <strong>Microsoft Teams</strong></li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Invio <strong>email</strong> di convocazione con link Teams</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Inserimento codice univoco nel database Notion</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Inserimento del link della formazione nel database Notion</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Invio notifiche <strong>Telegram</strong> ai gruppi (Area + Generale)</li>
         {% elif action_type == 'feedback' %}
-            <li><i class="bi bi-check2-circle text-success me-2"></i> Invio richiesta feedback <strong>Telegram</strong> a {{ messages_count }} grupp{{ 'i' if messages_count != 1 else 'o' }}</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Invio messaggi <strong>Telegram</strong> con link al form di feedback</li>
             <li><i class="bi bi-check2-circle text-success me-2"></i> Aggiornamento Notion: Stato → {% set text = 'Conclusa' %}{% set color = 'badge-conclusa' %}{% set size = 'extra-small' %}{% include 'atoms/badge.html' %}</li>
         {% endif %}
     </ul>
