@@ -79,12 +79,17 @@ body {
 }
 
 /* Buttons */
-.btn-jemore-giallo, .btn-jemore-blu {
+.btn-jemore-giallo, .btn-jemore-blu, .btn-jemore-verde {
     border-radius: 10px;
     padding: 8px 20px;
     font-weight: 500;
     transition: all 0.2s;
     border: none;
+}
+
+.btn-jemore-verde {
+    background-color: var(--bs-success, #198754) !important;
+    color: white !important;
 }
 
 .btn-jemore-giallo {
