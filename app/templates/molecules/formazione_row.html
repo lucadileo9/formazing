@@ -2,7 +2,7 @@
 <tr>
     <!-- Nome -->
     <td>
-        <div class="fw-bold">{{ formazione.get('Nome', 'N/A') }}</div>
+        <div class="fw-bold text-blu-jemore">{{ formazione.get('Nome', 'N/A') }}</div>
         {% if formazione.get('Codice') %}
             <small class="text-muted">{{ formazione['Codice'] }}</small>
         {% endif %}
@@ -15,25 +15,25 @@
         {% set text = area %}
         
         {# Matching robusto case-insensitive #}
-        {% if 'IT' in area_upper or 'INFO' in area_upper or 'TECH' in area_upper %}
+        {% if 'IT' in area_upper %}
             {% set color = 'bg-primary' %}
             {% set icon = 'bi bi-laptop' %}
-        {% elif 'R&D' in area_upper or 'R&amp;D' in area_upper or 'RICERCA' in area_upper or 'DEVELOP' in area_upper %}
+        {% elif 'R&D' in area_upper or 'R&amp;D' in area_upper %}
             {% set color = 'bg-danger' %}
             {% set icon = 'bi bi-lightbulb' %}
-        {% elif 'MARKET' in area_upper %}
+        {% elif 'MARKETING' in area_upper %}
             {% set color = 'bg-purple' %}
             {% set icon = 'bi bi-megaphone' %}
-        {% elif 'COMMERC' in area_upper or 'SALES' in area_upper or 'VEND' in area_upper %}
+        {% elif 'COMMERCIALE' in area_upper or 'SALES' in area_upper %}
             {% set color = 'text-bg-warning' %}
             {% set icon = 'bi bi-briefcase' %}
-        {% elif 'LEGAL' in area_upper or 'LEGALE' in area_upper or 'GIURID' in area_upper %}
+        {% elif 'LEGAL' in area_upper or 'LEGALE' in area_upper %}
             {% set color = 'bg-brown' %}
             {% set icon = 'bi bi-shield-check' %}
-        {% elif 'HR' in area_upper or 'HUMAN' in area_upper or 'RISORSE' in area_upper %}
+        {% elif 'HR' in area_upper %}
             {% set color = 'bg-success' %}
             {% set icon = 'bi bi-people' %}
-        {% elif 'ALL' in area_upper or 'TUTT' in area_upper or 'GENER' in area_upper %}
+        {% elif 'ALL' in area_upper or 'TUTTI' in area_upper %}
             {% set color = 'bg-pink' %}
             {% set icon = 'bi bi-grid' %}
         {% elif area == 'N/A' or not area %}
@@ -100,18 +100,18 @@
         <div class="d-flex gap-2">
             {% if formazione.get('Stato') == 'Programmata' %}
                 <!-- Preview Calendarizzazione per formazioni Programmate -->
-                {% set variant = 'btn-primary' %}
+                {% set variant = 'btn-jemore-giallo' %}
                 {% set size = 'btn-sm' %}
                 {% set icon = 'bi bi-eye' %}
-                {% set text = 'Preview Calendarizzazione' %}
+                {% set text = 'Preview' %}
                 {% set onclick = "showPreview('" ~ formazione.get('_notion_id', '') ~ "', 'notification')" %}
                 {% include 'atoms/button.html' %}
             {% elif formazione.get('Stato') == 'Calendarizzata' %}
                 <!-- Preview Feedback per formazioni Calendarizzate -->
-                {% set variant = 'btn-danger' %}
+                {% set variant = 'btn-jemore-blu' %}
                 {% set size = 'btn-sm' %}
                 {% set icon = 'bi bi-chat-left-text' %}
-                {% set text = 'Preview Feedback' %}
+                {% set text = 'Preview' %}
                 {% set onclick = "showPreview('" ~ formazione.get('_notion_id', '') ~ "', 'feedback')" %}
                 {% include 'atoms/button.html' %}
             {% else %}
