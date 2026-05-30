@@ -1,0 +1,56 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="container-fluid d-flex flex-column align-items-center justify-content-center min-vh-100 bg-blu-jemore text-white">
+    <div class="text-center">
+        <!-- Logo JEMORE con animazione a scatti (step-rotation) -->
+        <div class="mb-5 logo-container">
+            <img src="{{ url_for('static', filename='images/logo_jemore.png') }}" alt="JEMORE" class="img-fluid step-spin-animation" style="max-height: 120px;">
+        </div>
+        
+        <div class="loading-content mb-4">
+            <h2 class="h3 fw-bold mb-2 mt-4">{{ loading_title }}</h2>
+            <p class="text-white-50 lead">{{ loading_message }}</p>
+        </div>
+
+        <div class="mt-5 small text-white-50 opacity-50">
+            <i class="bi bi-shield-check me-2"></i> Operazione sicura in corso...
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Rimuoviamo header e footer solo per questa pagina per massimizzare l'impatto */
+    header, footer { display: none !important; }
+    
+    .logo-container {
+        perspective: 1000px;
+    }
+
+    /* Animazione di rotazione fluida */
+    .step-spin-animation {
+        /* Usiamo linear per una rotazione costante o ease-in-out per un effetto più organico */
+        animation: step-spin 2.5s ease-in-out infinite;
+    }
+
+    @keyframes step-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Nascondiamo l'overlay globale perché questa pagina È essa stessa un overlay */
+    #loadingOverlay { display: none !important; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nextUrl = "{{ next_url|safe }}";
+        
+        // Un piccolo delay per far apprezzare l'animazione e non far sembrare lo scatto troppo brusco
+        setTimeout(() => {
+            // Usiamo replace per non sporcare la history
+            window.location.replace(nextUrl);
+        }, 800);
+    });
+</script>
+{% endblock %}

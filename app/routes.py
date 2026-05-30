@@ -120,6 +120,33 @@ def tutorial():
                          faqs=faqs)
 
 
+@main.route('/loading')
+def loading():
+    """Pagina di transizione per il caricamento."""
+    next_url = request.args.get('next')
+    
+    # Se un utente accede direttamente senza parametri, mostriamo messaggi simpatici
+    if not next_url:
+        import random
+        easter_eggs = [
+            ("Ehi, cosa ci fai qui?", "Non c'è niente da caricare... ti riporto alla Dashboard!"),
+            ("Ti sei perso?", "Questa è la 'Stanza del Caricamento', ma sembra sia vuota. Torniamo indietro..."),
+            ("Cercando il senso della vita...", "Non l'ho trovato, ma ho trovato la strada per la Dashboard."),
+            ("Pausa caffè per il server?", "Il server sta prendendo un espresso, ti riporto alla Dashboard intanto.")
+        ]
+        title, message = random.choice(easter_eggs)
+        next_url = url_for('main.dashboard')
+    else:
+        title = request.args.get('title', 'Elaborazione in corso...')
+        message = request.args.get('message', 'Attendere prego')
+    
+    return render_template('pages/loading.html', 
+                         next_url=next_url,
+                         loading_title=title,
+                         loading_message=message,
+                         title='Caricamento - Formazing')
+
+
 # === PAGINE PREVIEW CON FORM CONFERMA ===
 
 @main.route('/preview/notification/<training_id>')

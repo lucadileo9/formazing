@@ -101,7 +101,7 @@
     
     <!-- Azioni -->
     <td>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
             {% if formazione.get('Stato') == 'Programmata' %}
                 <!-- Preview Calendarizzazione per formazioni Programmate -->
                 {% set variant = 'btn-jemore-giallo' %}
@@ -132,25 +132,29 @@
 </tr>
 
 <script>
-function showPreview(trainingId, actionType) {
-    const titles = {
-        'notification': 'Generazione Preview Notifica',
-        'feedback': 'Generazione Preview Feedback'
-    };
-    
-    const messages = {
-        'notification': 'Preparazione messaggi Telegram, email e Teams...',
-        'feedback': 'Preparazione richiesta feedback...'
-    };
+if (typeof showPreview !== 'function') {
+    window.showPreview = function(trainingId, actionType) {
+        const titles = {
+            'notification': 'Generazione Preview Notifica',
+            'feedback': 'Generazione Preview Feedback'
+        };
+        
+        const messages = {
+            'notification': 'Preparazione messaggi Telegram, email e Teams...',
+            'feedback': 'Preparazione richiesta feedback...'
+        };
 
-    // Mostra loading con messaggio personalizzato
-    LoadingOverlay.show(titles[actionType], messages[actionType]);
-    
-    // Naviga alla preview (il loading si nasconderà al caricamento della nuova pagina)
-    const url = actionType === 'notification' 
-        ? `/preview/notification/${trainingId}`
-        : `/preview/feedback/${trainingId}`;
-    
-    window.location.href = url;
+        const targetUrl = actionType === 'notification' 
+            ? `/preview/notification/${trainingId}`
+            : `/preview/feedback/${trainingId}`;
+
+        // Feedback a livello di riga (opzionale ma carino per l'istante del click)
+        const actionsEl = document.getElementById(`actions-${trainingId}`);
+        if (actionsEl) actionsEl.classList.add('d-none');
+
+        // Navighiamo alla pagina di loading professionale
+        const loadingUrl = `/loading?next=${encodeURIComponent(targetUrl)}&title=${encodeURIComponent(titles[actionType])}&message=${encodeURIComponent(messages[actionType])}`;
+        window.location.href = loadingUrl;
+    };
 }
 </script>

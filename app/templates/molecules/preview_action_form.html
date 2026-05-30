@@ -44,8 +44,9 @@
 
 <script>
 function handleCancel() {
-    LoadingOverlay.show('Ritorno alla Dashboard', 'Annullamento operazione...');
-    window.location.href = "{{ url_for('main.dashboard') }}";
+    const targetUrl = "{{ url_for('main.dashboard') }}";
+    const loadingUrl = `/loading?next=${encodeURIComponent(targetUrl)}&title=${encodeURIComponent('Ritorno alla Dashboard')}&message=${encodeURIComponent('Sto riottenendo i dati aggiornati da Notion...')}`;
+    window.location.href = loadingUrl;
 }
 
 function handleConfirm(event, actionType, messagesCount) {
@@ -59,6 +60,10 @@ function handleConfirm(event, actionType, messagesCount) {
         'feedback': 'Invio messaggi Telegram e aggiornamento Notion...'
     };
     
+    // Per il submit del form (POST), usiamo l'overlay globale perché non possiamo 
+    // fare un redirect intermedio a una pagina di caricamento mantenendo i dati POST 
+    // in modo semplice senza AJAX. L'overlay qui è corretto perché il browser 
+    // gestisce la transizione POST -> Redirect nativamente.
     LoadingOverlay.show(titles[actionType], messages[actionType]);
     
     return true;
