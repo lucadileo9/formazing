@@ -64,43 +64,30 @@ async def dashboard():
         notion_service = training_service.notion_service
         logger.debug("✅ NotionService recuperato da TrainingService Singleton")
         
-        # PERFORMANCE BOOST: Chiamate parallele con asyncio.gather()
-        logger.debug("🔄 Recupero formazioni da Notion (chiamate parallele)...")
-        formazioni_results = await asyncio.gather(
-            notion_service.get_formazioni_by_status('Programmata'),
-            notion_service.get_formazioni_by_status('Calendarizzata'),
-            notion_service.get_formazioni_by_status('Conclusa'),
-            return_exceptions=True  # Continua anche se una chiamata fallisce
-        )
+        # CHIAMATA OTTIMIZZATA: Singola richiesta globale con paginazione gestita
+        dashboard_data = await notion_service.get_dashboard_data()
         
-        # Gestione risultati con error handling
-        formazioni_programmata = formazioni_results[0] if not isinstance(formazioni_results[0], Exception) else []
-        formazioni_calendarizzata = formazioni_results[1] if not isinstance(formazioni_results[1], Exception) else []
-        formazioni_conclusa = formazioni_results[2] if not isinstance(formazioni_results[2], Exception) else []
-        
-        # Log eventuali errori nelle chiamate Notion
-        for idx, result in enumerate(formazioni_results):
-            if isinstance(result, Exception):
-                status = ['Programmata', 'Calendarizzata', 'Conclusa'][idx]
-                logger.error(f"❌ Errore recupero formazioni '{status}': {result}")
+        formazioni_programmata = dashboard_data.get('Programmata', [])
+        formazioni_calendarizzata = dashboard_data.get('Calendarizzata', [])
+        formazioni_conclusa = dashboard_data.get('Conclusa', [])
         
         # Statistiche con null safety
         stats = {
-            'programmata': len(formazioni_programmata or []),
-            'calendarizzata': len(formazioni_calendarizzata or []),
-            'conclusa': len(formazioni_conclusa or []),
+            'programmata': len(formazioni_programmata),
+            'calendarizzata': len(formazioni_calendarizzata),
+            'conclusa': len(formazioni_conclusa),
         }
         stats['totale'] = stats['programmata'] + stats['calendarizzata'] + stats['conclusa']
         
         logger.info(f"✅ Dashboard caricata | Totale: {stats['totale']} | "
-                   f"Programmata: {stats['programmata']} | Calendarizzata: {stats['calendarizzata']} | "
-                   f"Conclusa: {stats['conclusa']}")
+                   f"P: {stats['programmata']} | C: {stats['calendarizzata']} | "
+                   f"F: {stats['conclusa']}")
         
         # Usa il nuovo template atomic design
         response_html = render_template('pages/dashboard.html',
-                             formazioni_programmata=formazioni_programmata or [],
-                             formazioni_calendarizzata=formazioni_calendarizzata or [],
-                             formazioni_conclusa=formazioni_conclusa or [],
+                             formazioni_programmata=formazioni_programmata,
+                             formazioni_calendarizzata=formazioni_calendarizzata,
+                             formazioni_conclusa=formazioni_conclusa,
                              stats=stats,
                              title='Dashboard - Formazing')
         

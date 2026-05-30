@@ -104,6 +104,71 @@ class NotionService:
             logger.error(f"❌ Errore query formazioni | Status: '{status}' | Error: {e}")
             raise NotionServiceError(f"Errore recupero formazioni: {e}")
     
+    async def get_dashboard_data(self) -> Dict[str, List[Dict]]:
+        """
+        Recupera tutti i dati per la dashboard in un'unica operazione ottimizzata.
+        
+        GESTISCE:
+        - Singola chiamata API globale (più veloce di 3 chiamate separate)
+        - Paginazione automatica (supera il limite dei 100 record di Notion)
+        - Suddivisione dati in Python per stato
+        
+        Returns:
+            Dict[str, List[Dict]]: Dizionario con chiavi 'Programmata', 'Calendarizzata', 'Conclusa'
+        """
+        logger.info("Recupero dati dashboard globale da Notion (Query Ottimizzata)...")
+        
+        try:
+            all_raw_results = []
+            next_cursor = None
+            has_more = True
+            
+            # Ciclo di paginazione per recuperare TUTTI i record (anche > 100)
+            while has_more:
+                query = self.query_builder.build_all_records_query(
+                    database_id=self.client.get_database_id(),
+                    next_cursor=next_cursor
+                )
+                
+                response = self.client.get_client().databases.query(**query)
+                all_raw_results.extend(response.get('results', []))
+                
+                has_more = response.get('has_more', False)
+                next_cursor = response.get('next_cursor')
+                
+                if has_more:
+                    logger.debug(f"Paginazione Notion attiva... recuperati finora {len(all_raw_results)} record")
+            
+            # Parsing completo della lista unica
+            # Creiamo un oggetto finto di risposta per riutilizzare parse_formazioni_list
+            fake_response = {'results': all_raw_results}
+            formazioni_totali = self.data_parser.parse_formazioni_list(fake_response)
+            
+            # Suddivisione in Python
+            dashboard_data = {
+                'Programmata': [],
+                'Calendarizzata': [],
+                'Conclusa': []
+            }
+            
+            for f in formazioni_totali:
+                stato = f.get('Stato')
+                if stato in dashboard_data:
+                    dashboard_data[stato].append(f)
+                else:
+                    logger.warning(f"⚠️ Formazione '{f['Nome']}' ha uno stato sconosciuto: '{stato}'")
+            
+            logger.info(f"✅ Dashboard data pronta | Totale: {len(formazioni_totali)} | "
+                       f"P: {len(dashboard_data['Programmata'])} | "
+                       f"C: {len(dashboard_data['Calendarizzata'])} | "
+                       f"F: {len(dashboard_data['Conclusa'])}")
+            
+            return dashboard_data
+            
+        except Exception as e:
+            logger.error(f"❌ Errore critico nel recupero dashboard data: {e}")
+            raise NotionServiceError(f"Errore ottimizzazione query: {e}")
+
     async def update_formazione(self, notion_id: str, updates: Dict) -> bool:
         """
         Aggiorna formazione con campi multipli in una singola operazione atomica.
