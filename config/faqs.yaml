@@ -41,3 +41,5 @@ faqs:
     answer: "Formazing non aggiorna automaticamente eventi o messaggi già inviati. Dovrai correggere la data su Notion, modificare a mano l'evento su Teams e avvisare i soci del cambiamento sul gruppo Telegram."
   - question: "Come faccio a inviare il link di feedback se la formazione non era stata gestita e calendarizzata tramite Formazing?"
     answer: "Formazing mostra nella schermata di chiusura solo le formazioni con stato 'Calendarizzata'. Se hai gestito una formazione a mano, dovrai inviare tu il link del feedback sul gruppo, oppure impostarla su 'Calendarizzata' in Notion per farla comparire su Formazing."
+  - question: "L'applicazione ci mette molte a caricare, come mai?"
+    answer: "Formazing per ottenere i dati delle formazioni si connette a Notion, stessa cosa per inviare i messaggi su Telegram, e per creare eventi su Teams. Queste operazioni richiedono una connessione internet stabile e veloce, di conseguenza possono essere rallentate se la connessione è lenta o instabile."
