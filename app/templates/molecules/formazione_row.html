@@ -1,15 +1,15 @@
 <!-- 🧩 MOLECULE: Formazione Row -->
 <tr>
     <!-- Nome -->
-    <td>
-        <div class="fw-bold text-blu-jemore">{{ formazione.get('Nome', 'N/A') }}</div>
+    <td class="text-truncate" style="max-width: 0;" title="{{ formazione.get('Nome', 'N/A') }}">
+        <div class="fw-bold text-blu-jemore text-truncate">{{ formazione.get('Nome', 'N/A') }}</div>
         {% if formazione.get('Codice') %}
-            <small class="text-muted">{{ formazione['Codice'] }}</small>
+            <small class="text-muted d-block text-truncate">{{ formazione['Codice'] }}</small>
         {% endif %}
     </td>
     
     <!-- Area -->
-    <td>
+    <td class="text-truncate">
         {% set area = formazione.get('Area', 'N/A') | format_area %}
         {% set area_upper = area|upper if area else 'N/A' %}
         {% set text = area %}
@@ -46,12 +46,14 @@
             {% set icon = '' %}
         {% endif %}
         
-        {% include 'atoms/badge.html' %}
+        <div class="text-truncate">
+            {% include 'atoms/badge.html' %}
+        </div>
     </td>
     
     <!-- Data/Ora -->
-    <td>
-        <div class="small">
+    <td class="text-truncate">
+        <div class="small text-truncate">
             {% set name = 'bi bi-calendar-date' %}
             {% set size = 'me-1' %}
             {% set color = 'text-muted' %}
@@ -61,7 +63,7 @@
     </td>
     
     <!-- Periodo -->
-    <td>
+    <td class="text-truncate">
         {% set periodo = formazione.get('Periodo', 'N/A') %}
         {% set periodo_upper = periodo|upper if periodo else 'N/A' %}
         {% set text = periodo %}
@@ -92,7 +94,9 @@
             {% set icon = '' %}
         {% endif %}
         
-        {% include 'atoms/badge.html' %}
+        <div class="text-truncate">
+            {% include 'atoms/badge.html' %}
+        </div>
     </td>
     
     <!-- Azioni -->
