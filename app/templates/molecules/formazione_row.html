@@ -53,11 +53,7 @@
     
     <!-- Data/Ora -->
     <td class="text-truncate">
-        <div class="small text-truncate">
-            {% set name = 'bi bi-calendar-date' %}
-            {% set size = 'me-1' %}
-            {% set color = 'text-muted' %}
-            {% include 'atoms/icon.html' %}
+        <div class="small">
             {{ formazione.get('Data/Ora', 'Non programmata') }}
         </div>
     </td>
