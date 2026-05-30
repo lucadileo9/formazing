@@ -44,8 +44,11 @@
 
 <script>
 function handleCancel() {
+    // Ora che abbiamo la cache, il ritorno alla dashboard è istantaneo.
+    // Usiamo comunque la loading page per coerenza visiva, ma con un messaggio
+    // che indica un'operazione fulminea.
     const targetUrl = "{{ url_for('main.dashboard') }}";
-    const loadingUrl = `/loading?next=${encodeURIComponent(targetUrl)}&title=${encodeURIComponent('Ritorno alla Dashboard')}&message=${encodeURIComponent('Sto riottenendo i dati aggiornati da Notion...')}`;
+    const loadingUrl = `/loading?next=${encodeURIComponent(targetUrl)}&title=${encodeURIComponent('Ritorno alla Dashboard')}&message=${encodeURIComponent('Ripristino della panoramica formazioni...')}`;
     window.location.href = loadingUrl;
 }
 

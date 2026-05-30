@@ -10,7 +10,7 @@ Gestisce tutte le pagine web dell'applicazione:
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from app import auth
+from app import auth, cache
 from app.services.notion import NotionService, NotionServiceError
 from app.services.training_service import TrainingService, TrainingServiceError
 from config import Config
@@ -43,7 +43,21 @@ def home():
 async def dashboard():
     """Dashboard principale con formazioni organizzate per status (Flask Async)."""
     try:
-        logger.info("📊 Caricamento dashboard - richiesta ricevuta")
+        force_refresh = request.args.get('force_refresh') == '1'
+        
+        if force_refresh:
+            logger.info("🔄 Richiesto ricaricamento forzato della dashboard")
+            cache.delete('view//dashboard')
+            # Dopo aver pulito la cache, facciamo un redirect all'URL pulito
+            return redirect(url_for('main.dashboard'))
+        
+        # Prova a recuperare dalla cache
+        cached_data = cache.get('view//dashboard')
+        if cached_data:
+            logger.info("⚡ Dashboard caricata dalla cache")
+            return cached_data
+
+        logger.info("📊 Caricamento dashboard da Notion...")
         
         # Inizializzazione NotionService (via Singleton)
         training_service = TrainingService.get_instance()
@@ -83,12 +97,17 @@ async def dashboard():
                    f"Conclusa: {stats['conclusa']}")
         
         # Usa il nuovo template atomic design
-        return render_template('pages/dashboard.html',
+        response_html = render_template('pages/dashboard.html',
                              formazioni_programmata=formazioni_programmata or [],
                              formazioni_calendarizzata=formazioni_calendarizzata or [],
                              formazioni_conclusa=formazioni_conclusa or [],
                              stats=stats,
                              title='Dashboard - Formazing')
+        
+        # Salva in cache per 10 minuti
+        cache.set('view//dashboard', response_html, timeout=600)
+        
+        return response_html
                              
     except NotionServiceError as e:
         # Errore specifico NotionService
@@ -228,6 +247,9 @@ def confirm_notification(training_id):
                    f"Codice: {result.get('codice_generato', 'N/A')} | "
                    f"Gruppi notificati: {len(result.get('telegram_results', {}))}")
         
+        # Invalida la cache della dashboard per mostrare i dati aggiornati
+        cache.delete('view//dashboard')
+        
         flash('✅ Comunicazione inviata con successo! La formazione è stata calendarizzata.', 'success')
         return redirect(url_for('main.dashboard'))
         
@@ -254,6 +276,9 @@ def confirm_feedback(training_id):
         
         logger.info(f"✅ Feedback inviato con successo | Training ID: {training_id} | "
                    f"Gruppi notificati: {len(result.get('telegram_results', {}))}")
+        
+        # Invalida la cache della dashboard per mostrare i dati aggiornati
+        cache.delete('view//dashboard')
         
         flash('✅ Richiesta feedback inviata con successo! La formazione è stata conclusa.', 'success')
         return redirect(url_for('main.dashboard'))

@@ -2,10 +2,22 @@
 
 {% block page_content %}
     <!-- Dashboard Header -->
-    {% set title = 'Dashboard Formazioni' %}
-    {% set subtitle = 'Panoramica completa di tutte le formazioni da Notion' %}
-    {% set icon = 'bi bi-speedometer2' %}
-    {% include 'atoms/page_header.html' %}
+    <div class="d-flex justify-content-between align-items-start flex-wrap">
+        <div>
+            {% set title = 'Dashboard Formazioni' %}
+            {% set subtitle = 'Panoramica completa di tutte le formazioni da Notion' %}
+            {% set icon = 'bi bi-speedometer2' %}
+            {% include 'atoms/page_header.html' %}
+        </div>
+        <div class="mt-2">
+            {% set text = 'Aggiorna da Notion' %}
+            {% set icon = 'bi bi-arrow-clockwise' %}
+            {% set variant = 'btn-jemore-dark-blu' %}
+            {% set size = 'btn-sm' %}
+            {% set onclick = "refreshDashboard()" %}
+            {% include 'atoms/button.html' %}
+        </div>
+    </div>
 
     <!-- Statistics Section -->
     {% include 'organisms/dashboard_stats.html' %}
@@ -110,5 +122,12 @@
         // Hide loading overlay when dashboard is fully loaded
         LoadingOverlay.hide();
     });
+
+    function refreshDashboard() {
+        // Mostra transizione professionale tramite loading page
+        const targetUrl = "{{ url_for('main.dashboard', force_refresh=1) }}";
+        const loadingUrl = `/loading?next=${encodeURIComponent(targetUrl)}&title=${encodeURIComponent('Aggiornamento Dati')}&message=${encodeURIComponent('Recupero formazioni fresche da Notion...')}`;
+        window.location.href = loadingUrl;
+    }
 </script>
 {% endblock %}

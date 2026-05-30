@@ -12,11 +12,15 @@ Configurazione centralizzata dell'applicazione Flask con:
 
 from flask import Flask
 from flask_httpauth import HTTPBasicAuth
+from flask_caching import Cache
 from config import Config
 import logging
 
 # Inizializza l'autenticazione Basic HTTP
 auth = HTTPBasicAuth()
+
+# Inizializza il sistema di Caching (Backend in memoria)
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 600})
 
 # Logger per app factory
 logger = logging.getLogger(__name__)
@@ -37,7 +41,10 @@ def create_app():
     
     # Carica configurazione
     app.config.from_object(Config)
-    logger.info(f"✅ Configurazione Flask caricata (DEBUG={Config.DEBUG})")
+    
+    # Inizializza la cache con l'app
+    cache.init_app(app)
+    logger.info(f"✅ Configurazione Flask caricata (DEBUG={Config.DEBUG}, CACHE attiva)")
     
     # Registra il sistema di autenticazione
     @auth.verify_password
