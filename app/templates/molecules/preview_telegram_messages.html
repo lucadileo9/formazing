@@ -16,6 +16,7 @@
                 {% for message in messages %}
                     {% set area = message.area %}
                     {% set message_text = message.message %}
+                    {% set msg_index = loop.index0 %}
                     {% include 'atoms/telegram_message_preview.html' %}
                 {% endfor %}
             </div>
