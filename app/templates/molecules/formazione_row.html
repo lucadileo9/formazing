@@ -11,40 +11,9 @@
     <!-- Area -->
     <td class="text-truncate">
         {% set area = formazione.get('Area', 'N/A') | format_area %}
-        {% set area_upper = area|upper if area else 'N/A' %}
         {% set text = area %}
-        
-        {# Matching robusto case-insensitive #}
-        {% if 'IT' in area_upper %}
-            {% set color = 'bg-primary' %}
-            {% set icon = '' %}
-        {% elif 'R&D' in area_upper or 'R&amp;D' in area_upper %}
-            {% set color = 'bg-danger' %}
-            {% set icon = '' %}
-        {% elif 'MARKETING' in area_upper %}
-            {% set color = 'bg-purple' %}
-            {% set icon = '' %}
-        {% elif 'COMMERCIALE' in area_upper or 'SALES' in area_upper %}
-            {% set color = 'text-bg-warning' %}
-            {% set icon = '' %}
-        {% elif 'LEGAL' in area_upper or 'LEGALE' in area_upper %}
-            {% set color = 'bg-brown' %}
-            {% set icon = '' %}
-        {% elif 'HR' in area_upper %}
-            {% set color = 'bg-success' %}
-            {% set icon = '' %}
-        {% elif 'ALL' in area_upper or 'TUTTI' in area_upper %}
-            {% set color = 'bg-pink' %}
-            {% set icon = '' %}
-        {% elif area == 'N/A' or not area %}
-            {% set color = 'bg-secondary' %}
-            {% set icon = '' %}
-            {% set text = 'Non specificata' %}
-        {% else %}
-            {# Fallback con colore neutro per valori sconosciuti #}
-            {% set color = 'bg-secondary text-light' %}
-            {% set icon = '' %}
-        {% endif %}
+        {% set icon = '' %}
+        {% set color = area | area_color %}
         
         <div class="text-truncate">
             {% include 'atoms/badge.html' %}

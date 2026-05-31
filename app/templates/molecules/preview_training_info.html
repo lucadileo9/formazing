@@ -15,7 +15,7 @@
                     <div class="d-flex flex-wrap gap-1">
                         {% for area in training.Area %}
                             {% set text = area %}
-                            {% set color = 'bg-secondary' %}
+                            {% set color = area | area_color %}
                             {% set size = 'extra-small' %}
                             <span data-vital-field="area-{{ loop.index0 }}" class="d-none">{{ area }}</span>
                             {% include 'atoms/badge.html' %}

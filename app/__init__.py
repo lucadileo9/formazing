@@ -86,6 +86,35 @@ def create_app():
         else:
             return 'N/A'
     
+    @app.template_filter('area_color')
+    def area_color_filter(area):
+        """
+        Ritorna la classe colore CSS associata all'area.
+        """
+        if not area or area == 'N/A':
+            return 'bg-secondary'
+            
+        area_upper = area.upper()
+        
+        if 'IT' in area_upper:
+            return 'bg-primary'
+        if 'R&D' in area_upper:
+            return 'bg-danger'
+        if 'MARKETING' in area_upper:
+            return 'bg-purple'
+        if 'COMMERCIALE' in area_upper or 'SALES' in area_upper:
+            return 'text-bg-warning'
+        if 'LEGAL' in area_upper or 'LEGALE' in area_upper:
+            return 'bg-brown'
+        if 'HR' in area_upper:
+            return 'bg-success'
+        if 'ALL' in area_upper or 'TUTTI' in area_upper:
+            return 'bg-pink'
+        if 'TEST' in area_upper:
+            return 'bg-info'
+            
+        return 'bg-secondary'
+    
     logger.info("Filtri Jinja2 personalizzati registrati")
     
     # Error handlers
