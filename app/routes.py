@@ -109,8 +109,8 @@ async def dashboard():
         return redirect(url_for('main.home'))
 
 
-@main.route('/tutorial')
-def tutorial():
+@main.route('/guida')
+def guida():
     """Pagina Tutorial e FAQ con dati da YAML."""
     try:
         faq_path = os.path.join(Config.BASE_DIR, 'config', 'faqs.yaml')
@@ -121,8 +121,8 @@ def tutorial():
         logger.error(f"❌ Errore caricamento FAQ: {e}")
         faqs = []
         
-    return render_template('pages/tutorial.html', 
-                         title='Tutorial & FAQ - Formazing',
+    return render_template('pages/guida.html', 
+                         title='Guida - Formazing',
                          faqs=faqs)
 
 
