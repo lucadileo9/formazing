@@ -148,7 +148,8 @@ class TrainingService:
                     # Usa formatters per generare messaggio
                     message = self.telegram_service.formatter.format_training_message(training_preview, group_key=area)
                     messages_preview.append({
-                        'area': area,
+                        'area': area, # Chiave tecnica (es. 'IT')
+                        'display_name': area, # Nome per l'utente
                         'chat_id': chat_id,
                         'message': message
                     })
@@ -158,7 +159,8 @@ class TrainingService:
                 main_chat_id = self.telegram_service.groups['main_group']
                 main_message = self.telegram_service.formatter.format_training_message(training_preview, group_key='main_group')
                 messages_preview.append({
-                    'area': 'Main Group',
+                    'area': 'main_group', # Chiave tecnica corretta per il backend
+                    'display_name': 'Gruppo Generale', # Nome leggibile
                     'chat_id': main_chat_id,
                     'message': main_message
                 })
@@ -214,7 +216,7 @@ class TrainingService:
             logger.error(f"Errore imprevisto in preview {training_id}: {e}")
             raise TrainingServiceError(f"Errore interno: {e}")
     
-    async def send_training_notification(self, training_id: str) -> Dict:
+    async def send_training_notification(self, training_id: str, custom_messages: Dict[str, str] = None, custom_email_body: str = None) -> Dict:
         """
         Workflow completo per invio comunicazione formazione.
         
@@ -227,6 +229,8 @@ class TrainingService:
         
         Args:
             training_id: ID della formazione da Notion
+            custom_messages: Dizionario {group_key: messaggio} personalizzato (opzionale)
+            custom_email_body: Corpo email HTML personalizzato (opzionale)
             
         Returns:
             Dict con risultati operazione: {
@@ -239,7 +243,6 @@ class TrainingService:
             
         Raises:
             TrainingServiceError: Se operazione fallisce
-            MicrosoftServiceError: Se creazione evento Teams fallisce (fail-fast)
         """
         try:
             logger.info(f"Avvio invio comunicazione per formazione {training_id}")
@@ -260,7 +263,7 @@ class TrainingService:
             
             # 3. Crea evento Teams + invia email (FAIL-FAST se fallisce)
             try:
-                microsoft_result = await self._create_teams_meeting(training)
+                microsoft_result = await self._create_teams_meeting(training, custom_email_body)
                 teams_link = microsoft_result['teams_link']
                 attendee_emails = microsoft_result['attendee_emails']
                 logger.info(f"Microsoft integration completata - Email inviate a: {', '.join(attendee_emails)}")
@@ -279,8 +282,8 @@ class TrainingService:
             # 5. Recupera formazione aggiornata per invio Telegram
             updated_training = await self.notion_service.get_formazione_by_id(training_id)
             
-            # 6. Invia messaggi Telegram
-            send_results = await self.telegram_service.send_training_notification(updated_training)
+            # 6. Invia messaggi Telegram (usa custom_messages se forniti)
+            send_results = await self.telegram_service.send_training_notification(updated_training, custom_messages)
             
             result = {
                 'codice_generato': generated_code,
@@ -389,7 +392,7 @@ class TrainingService:
             logger.error(f"Errore in generate_feedback_preview: {e}")
             raise TrainingServiceError(f"Errore generazione preview feedback: {e}")
     
-    async def send_feedback_request(self, training_id: str) -> Dict:
+    async def send_feedback_request(self, training_id: str, custom_messages: Dict[str, str] = None) -> Dict:
         """
         Invia richiesta feedback post-formazione.
         
@@ -401,6 +404,7 @@ class TrainingService:
         
         Args:
             training_id: ID della formazione da Notion
+            custom_messages: Dizionario {group_key: messaggio} personalizzato (opzionale)
             
         Returns:
             Dict con risultati operazione: {
@@ -431,7 +435,8 @@ class TrainingService:
             logger.info(f"STEP 3 OK: Link generato: {feedback_link}")
 
             logger.info(f"STEP 4: Invio notifica feedback via Telegram per {training_id}")
-            send_results = await self.telegram_service.send_feedback_notification(training, feedback_link)
+            # Passiamo i messaggi personalizzati (se presenti)
+            send_results = await self.telegram_service.send_feedback_notification(training, feedback_link, custom_messages)
             logger.info(f"STEP 4 OK: Risultati invio Telegram: {send_results}")
 
             logger.info(f"STEP 5: Aggiornamento stato Notion a 'Conclusa' per {training_id}")
@@ -540,7 +545,7 @@ class TrainingService:
         logger.debug(f"Codice generato: {code}")
         return code
     
-    async def _create_teams_meeting(self, training: Dict) -> Dict:
+    async def _create_teams_meeting(self, training: Dict, custom_body: str = None) -> Dict:
         """
         Crea meeting Teams tramite Microsoft Graph API.
         
@@ -550,7 +555,8 @@ class TrainingService:
         - Inviare email a mailing list area
         
         Args:
-            training: Dict con dati formazione (deve includere Nome, Data/Ora, Area, Codice)
+            training: Dict con dati formazione
+            custom_body: Corpo email personalizzato (opzionale)
             
         Returns:
             Dict con:
@@ -565,8 +571,8 @@ class TrainingService:
         try:
             logger.info(f"Creazione evento Teams per: {training.get('Nome', 'N/A')}")
             
-            # Chiama MicrosoftService per creare evento completo
-            result = await self.microsoft_service.create_training_event(training)
+            # Chiama MicrosoftService passando il corpo personalizzato se presente
+            result = await self.microsoft_service.create_training_event(training, custom_body)
             
             logger.info(
                 f"Evento Teams creato con successo - "

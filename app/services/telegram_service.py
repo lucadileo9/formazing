@@ -299,7 +299,7 @@ class TelegramService:
             return False
     
     
-    async def send_training_notification(self, training_data: Dict) -> Dict[str, bool]:
+    async def send_training_notification(self, training_data: Dict, custom_messages: Dict[str, str] = None) -> Dict[str, bool]:
         """
         Invia notifica di nuova formazione ai gruppi appropriati usando template YAML.
         
@@ -336,12 +336,24 @@ class TelegramService:
             logger.info(f"⏭️ Nessun gruppo target per notifica | Formazione: {training_data.get('Nome', 'N/A')}")
             return results
         
-        # Invia messaggio formattato a ogni gruppo target
+        # Invia messaggio a ogni gruppo target
         logger.info(f"📣 Invio notifica formazione | Target: {len(target_groups)} gruppi | "
                    f"Formazione: {training_data.get('Nome', 'N/A')}")
         
         for group_key in target_groups:
-            message = self.formatter.format_training_message(training_data, group_key)
+            # Usa il messaggio personalizzato se fornito, altrimenti usa il formatter (template)
+            if custom_messages and group_key in custom_messages:
+                message = custom_messages[group_key]
+                logger.debug(f"Uso messaggio personalizzato per gruppo: {group_key}")
+            else:
+                message = self.formatter.format_training_message(training_data, group_key)
+            
+            # Se il messaggio è vuoto (l'utente ha cancellato tutto), saltiamo l'invio
+            if not message or not message.strip():
+                logger.info(f"⏭️ Messaggio vuoto per {group_key}, invio saltato.")
+                results[group_key] = True # Consideriamolo un successo (intenzione dell'utente)
+                continue
+            
             success = await self.send_message_to_group(group_key, message)
             results[group_key] = success
         
@@ -350,7 +362,7 @@ class TelegramService:
                    f"Gruppi: {', '.join(results.keys())}")
         return results
     
-    async def send_feedback_notification(self, training_data: Dict, feedback_link: str) -> Dict[str, bool]:
+    async def send_feedback_notification(self, training_data: Dict, feedback_link: str, custom_messages: Dict[str, str] = None) -> Dict[str, bool]:
         """
         Invia richiesta feedback post-formazione ai gruppi area (NO main_group).
         
@@ -400,7 +412,13 @@ class TelegramService:
                    f"Formazione: {training_data.get('Nome', 'N/A')}")
         
         for group_key in target_groups:
-            message = self.formatter.format_feedback_message(training_data, feedback_link, group_key)
+            # Usa il messaggio personalizzato se fornito
+            if custom_messages and group_key in custom_messages:
+                message = custom_messages[group_key]
+                logger.debug(f"Uso messaggio feedback personalizzato per gruppo: {group_key}")
+            else:
+                message = self.formatter.format_feedback_message(training_data, feedback_link, group_key)
+            
             success = await self.send_message_to_group(group_key, message)
             results[group_key] = success
         

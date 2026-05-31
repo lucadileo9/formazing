@@ -100,7 +100,7 @@ class CalendarOperations:
         logger.debug(f"Attendee emails risol | Areas: {areas} | Emails: {emails}")
         return emails
     
-    def create_calendar_event(self, formazione_data: Dict) -> Dict:
+    def create_calendar_event(self, formazione_data: Dict, custom_body: str = None) -> Dict:
         """
         Crea un evento calendario con Teams meeting per una formazione.
         
@@ -173,9 +173,9 @@ class CalendarOperations:
                     "type": "required"
                 })
             
-            # 5. Prepara subject e body (usa direttamente i campi Notion)
+            # 5. Prepara subject e body (usa il custom se presente)
             subject = self.email_formatter.format_subject(formazione_data)
-            body = self.email_formatter.format_calendar_body(formazione_data)
+            body = custom_body if custom_body else self.email_formatter.format_calendar_body(formazione_data)
             
             # 6. Costruisci payload Graph API
             event_payload = {

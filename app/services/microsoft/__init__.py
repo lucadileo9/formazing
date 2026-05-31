@@ -75,7 +75,7 @@ class MicrosoftService:
         
         logger.info("✅ MicrosoftService inizializzato | Componenti: GraphClient, EmailFormatter, CalendarOperations")
     
-    async def create_training_event(self, formazione_data: Dict) -> Dict:
+    async def create_training_event(self, formazione_data: Dict, custom_body: str = None) -> Dict:
         """
         Crea un evento calendario con Teams meeting per una formazione.
         
@@ -125,7 +125,7 @@ class MicrosoftService:
             self._validate_formazione_data(formazione_data)
             
             # Delega a calendar_operations
-            result = self.calendar_operations.create_calendar_event(formazione_data)
+            result = self.calendar_operations.create_calendar_event(formazione_data, custom_body)
             
             # Aggiungi status
             result['status'] = 'success'
