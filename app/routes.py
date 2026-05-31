@@ -222,30 +222,48 @@ def preview_feedback_page(training_id):
 @main.route('/confirm/notification/<training_id>', methods=['POST'])
 @auth.login_required
 def confirm_notification(training_id):
-    """Conferma ed esegue calendarizzazione (chiamata da form preview)."""
+    """Conferma ed esegue calendarizzazione con supporto a testi personalizzati."""
     try:
         logger.info(f"🚀 Conferma calendarizzazione | Training ID: {training_id}")
         
-        # Usa Singleton TrainingService
+        # 1. Recupero testi personalizzati dal form
+        custom_email_body = request.form.get('email_body')
+        
+        # Recupero messaggi Telegram (dinamici per numero di gruppi)
+        custom_messages = {}
+        for key in request.form:
+            if key.startswith('telegram_msg_'):
+                index = key.split('_')[-1]
+                # Recuperiamo la chiave del gruppo corrispondente (es. 'IT', 'main_group')
+                # Inviata come input hidden nel template
+                group_key = request.form.get(f'telegram_group_{index}')
+                if group_key:
+                    custom_messages[group_key] = request.form.get(key)
+        
+        logger.debug(f"Testi personalizzati ricevuti: Email={bool(custom_email_body)}, Telegram={len(custom_messages)} gruppi")
+
+        # 2. Esecuzione tramite Service
         training_service = TrainingService.get_instance()
-        result = asyncio.run(training_service.send_training_notification(training_id))
+        result = asyncio.run(training_service.send_training_notification(
+            training_id, 
+            custom_messages=custom_messages,
+            custom_email_body=custom_email_body
+        ))
         
-        logger.info(f"✅ Calendarizzazione completata | Training ID: {training_id} | "
-                   f"Codice: {result.get('codice_generato', 'N/A')} | "
-                   f"Gruppi notificati: {len(result.get('telegram_results', {}))}")
+        logger.info(f"✅ Calendarizzazione completata | ID: {training_id} | Codice: {result.get('codice_generato', 'N/A')}")
         
-        # Invalida la cache della dashboard per mostrare i dati aggiornati
+        # Invalida la cache della dashboard
         cache.delete('view//dashboard')
         
         flash('✅ Comunicazione inviata con successo! La formazione è stata calendarizzata.', 'success')
         return redirect(url_for('main.dashboard'))
         
     except TrainingServiceError as e:
-        logger.error(f"❌ Errore conferma calendarizzazione | Training ID: {training_id} | Error: {e}")
+        logger.error(f"❌ Errore conferma calendarizzazione: {e}")
         flash(f'❌ Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
-        logger.error(f"❌ Errore imprevisto conferma calendarizzazione | Training ID: {training_id} | Error: {e}", exc_info=True)
+        logger.error(f"❌ Errore imprevisto conferma calendarizzazione: {e}", exc_info=True)
         flash(f'❌ Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -253,28 +271,39 @@ def confirm_notification(training_id):
 @main.route('/confirm/feedback/<training_id>', methods=['POST'])
 @auth.login_required
 def confirm_feedback(training_id):
-    """Conferma ed esegue invio feedback (chiamata da form preview)."""
+    """Conferma ed esegue invio feedback con supporto a messaggi personalizzati."""
     try:
         logger.info(f"📝 Conferma invio feedback | Training ID: {training_id}")
         
-        # Usa Singleton TrainingService
+        # 1. Recupero messaggi Telegram personalizzati
+        custom_messages = {}
+        for key in request.form:
+            if key.startswith('telegram_msg_'):
+                index = key.split('_')[-1]
+                group_key = request.form.get(f'telegram_group_{index}')
+                if group_key:
+                    custom_messages[group_key] = request.form.get(key)
+
+        # 2. Esecuzione tramite Service
         training_service = TrainingService.get_instance()
-        result = asyncio.run(training_service.send_feedback_request(training_id))
+        result = asyncio.run(training_service.send_feedback_request(
+            training_id,
+            custom_messages=custom_messages
+        ))
         
-        logger.info(f"✅ Feedback inviato con successo | Training ID: {training_id} | "
-                   f"Gruppi notificati: {len(result.get('telegram_results', {}))}")
+        logger.info(f"✅ Feedback inviato con successo | ID: {training_id}")
         
-        # Invalida la cache della dashboard per mostrare i dati aggiornati
+        # Invalida la cache della dashboard
         cache.delete('view//dashboard')
         
         flash('✅ Richiesta feedback inviata con successo! La formazione è stata conclusa.', 'success')
         return redirect(url_for('main.dashboard'))
         
     except TrainingServiceError as e:
-        logger.error(f"❌ Errore conferma feedback | Training ID: {training_id} | Error: {e}")
+        logger.error(f"❌ Errore conferma feedback: {e}")
         flash(f'❌ Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
-        logger.error(f"❌ Errore imprevisto conferma feedback | Training ID: {training_id} | Error: {e}", exc_info=True)
+        logger.error(f"❌ Errore imprevisto conferma feedback: {e}", exc_info=True)
         flash(f'❌ Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
