@@ -9,11 +9,11 @@
         <!-- Info Header -->
         <div class="p-3 border-bottom bg-light">
             <div class="mb-2">
-                <strong class="small text-muted text-uppercase me-2">Destinatari:</strong>
+                <strong class="small text-muted me-2">Destinatari:</strong>
                 <span class="small text-dark">{{ email.attendee_emails|join(', ') }}</span>
             </div>
             <div>
-                <strong class="small text-muted text-uppercase me-2">Oggetto:</strong>
+                <strong class="small text-muted me-2">Oggetto:</strong>
                 <span class="small text-dark fw-bold">{{ email.subject }}</span>
             </div>
         </div>
@@ -21,7 +21,7 @@
         <div class="row g-0">
             <!-- Editor Column -->
             <div class="col-lg-6 border-end p-3">
-                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Corpo Email (HTML)</label>
+                <label class="form-label small fw-bold text-muted mb-2">Editor - HTML</label>
                 <textarea class="preview-editor-textarea email-editor-js" 
                           rows="15"
                           name="email_body">{{ email.body_preview }}</textarea>
@@ -32,7 +32,7 @@
             
             <!-- Mockup Column -->
             <div class="col-lg-6 p-3 bg-light">
-                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Anteprima Client Outlook</label>
+                <label class="form-label small fw-bold text-muted mb-2">Anteprima</label>
                 <div class="email-mockup shadow-sm">
                     <div class="email-header">
                         <div class="email-header-item"><strong>Da:</strong> Responsabile Formazioni JEMORE</div>
@@ -41,7 +41,7 @@
                             {% if email.attendee_emails|length == 1 %}
                                 {{ email.attendee_emails[0] }}
                             {% else %}
-                                {{ email.attendee_emails[0] }} + {{ email.attendee_emails|length - 1 }} altri
+                                {{ email.attendee_emails|join(', ') }}
                             {% endif %}
                         </div>
                         <div class="email-header-item"><strong>Oggetto:</strong> {{ email.subject }}</div>

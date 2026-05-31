@@ -13,7 +13,7 @@
         <div class="row g-0">
             <!-- Editor Column -->
             <div class="col-lg-6 border-end p-3">
-                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Editor (Markdown)</label>
+                <label class="form-label small fw-bold text-muted mb-2">Editor - Markdown</label>
                 <!-- Campo hidden per passare la chiave tecnica del gruppo al server -->
                 <input type="hidden" name="telegram_group_{{ msg_index }}" value="{{ area }}">
                 <textarea class="preview-editor-textarea telegram-editor-js" 
@@ -21,13 +21,13 @@
                           rows="10"
                           name="telegram_msg_{{ msg_index }}">{{ message_text }}</textarea>
                 <div class="mt-2 extra-small text-muted">
-                    <i class="bi bi-info-circle me-1"></i> Puoi usare **grassetto**, *corsivo* e [link](url).
+                    <i class="bi bi-info-circle me-1"></i> Puoi usare **grassetto**, _corsivo_ e [link](url).
                 </div>
             </div>
             
             <!-- Mockup Column -->
             <div class="col-lg-6 p-3 bg-light">
-                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Anteprima App</label>
+                <label class="form-label small fw-bold text-muted mb-2">Anteprima</label>
                 <div class="telegram-mockup d-flex align-items-end">
                     <div class="telegram-bubble shadow-sm" id="telegram-preview-{{ msg_index }}">
                         <!-- Caricato dinamicamente via JS -->

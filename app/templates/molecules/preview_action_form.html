@@ -6,7 +6,7 @@
         Azioni che verranno eseguite
     </h5>
     <hr>
-    <ul class="mb-0">
+    <ul class="mb-0 list-unstyled">
         {% if action_type == 'notification' %}
             <li><i class="bi bi-check2-circle text-success me-2"></i> Cambiamento stato su Notion: → {% set text = 'Calendarizzata' %}{% set color = 'badge-calendarizzata' %}{% set size = 'extra-small' %}{% include 'atoms/badge.html' %}</li>
             <li><i class="bi bi-check2-circle text-success me-2"></i> Generazione codice univoco: <code class="text-danger">{{ codice_generato }}</code></li>
