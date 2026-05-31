@@ -1,8 +1,9 @@
 <!-- ⚛️ ATOM: Telegram message preview card (Split-View Editor) -->
+<!-- ⚛️ ATOM: Telegram message preview card (Split-View Editor) -->
 <div class="card border-light shadow-sm">
     <div class="card-header bg-white border-0 py-3">
         <div class="d-flex justify-content-between align-items-center">
-            <span class="fw-bold text-blu-jemore"><i class="bi bi-chat-dots me-2"></i> Canale: {{ area }}</span>
+            <span class="fw-bold text-blu-jemore"><i class="bi bi-chat-dots me-2"></i> Canale: {{ display_name|default(area) }}</span>
             {% set text = 'Messaggio ' ~ (msg_index + 1) %}
             {% set color = 'bg-secondary' %}
             {% include 'atoms/badge.html' %}
@@ -13,6 +14,8 @@
             <!-- Editor Column -->
             <div class="col-lg-6 border-end p-3">
                 <label class="form-label small fw-bold text-muted text-uppercase mb-2">Editor (Markdown)</label>
+                <!-- Campo hidden per passare la chiave tecnica del gruppo al server -->
+                <input type="hidden" name="telegram_group_{{ msg_index }}" value="{{ area }}">
                 <textarea class="preview-editor-textarea telegram-editor-js" 
                           data-index="{{ msg_index }}" 
                           rows="10"

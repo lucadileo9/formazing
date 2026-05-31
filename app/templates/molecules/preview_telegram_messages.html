@@ -15,6 +15,7 @@
             <div class="vstack gap-4 p-3">
                 {% for message in messages %}
                     {% set area = message.area %}
+                    {% set display_name = message.display_name %}
                     {% set message_text = message.message %}
                     {% set msg_index = loop.index0 %}
                     {% include 'atoms/telegram_message_preview.html' %}
