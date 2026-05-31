@@ -71,10 +71,10 @@
                         <li class="mb-2"><strong>Non modificare il link al form di feedback:</strong> Il link al form di feedback è fisso in Formazing, se cambia sarà necessario aggiornare i link in Formazing per continuare ad inviare i messaggi Telegram con i link corretti.</li> 
                         <li class="mb-2"><strong>Non modificare il formato data/ora su Notion:</strong> Formazing si aspetta un formato specifico per leggere correttamente la data e l'ora, se questo cambia Formazing non riuscirà più a leggere le date e di conseguenza non calendarizzerà più correttamente su Teams né invierà le notifiche con le date corrette.</li>
                         <li class="mb-2"><strong>Non modificare i nomi delle aree o dei periodi su Notion:</strong> Formazing si basa su nomi specifici per le aree (es. "IT", "R&D", "All", ecc.) e per i periodi (es. "SPRING", "AUTUMN", ecc.) per inviare le notifiche ai gruppi Telegram corretti.
-                        <li class="mb-2"><strong>Non toccare il Codice su Notion:</strong> Modificare il codice a mano rompe potrebbe rompere le analisi Excel dell'area R&D, se proprio necessario modificarlo, assicurati di rispettare le regole nella sezione dedicata al codice formazioni</li>
+                        <li class="mb-2"><strong>Non toccare il Codice su Notion:</strong> Modificare il codice a mano potrebbe rompere le analisi Excel dell'area R&D, se proprio necessario modificarlo, assicurati di rispettare le regole nella sezione dedicata al codice formazioni</li>
                     </ol>
                     <p class="text-blu-jemore small opacity-75 mb-4"> 
-                        Da notare che in teoria nessuna di questa operazione dovrebbe essere praticamente mai necessaria; in più si tratta di operazioni che non riguardano direttamente il responsabile formazioni, ma bensì altri ruoli. Ad esempio: a modificare la tabella di Notion potrebbe essere qualcuno dell'area <strong>IT</strong> o dell'area <strong>R&D</strong>, a cambiare i gruppi Telegram potrebbe essere il <strong>Board</strong> o i <strong>Resps</strong>, a cambiare i gruppi email potrebbe essere il <strong>Segretario Generale</strong>, ecc.<br><br>
+                        Da notare che in teoria nessuna di questa operazione dovrebbe essere praticamente mai necessaria; in più si tratta di operazioni che non riguardano direttamente il responsabile formazioni, ma bensì altri ruoli. Ad esempio: a modificare la tabella di Notion potrebbe essere qualcuno dell'area <strong>IT</strong> o dell'area <strong>R&D</strong>, a cambiare i gruppi Telegram potrebbe essere il <strong>Board</strong> o i <strong>Resps</strong>, a cambiare i gruppi email potrebbe essere il <strong>Segretario Generale</strong>, ecc...
                         Il tuo ruolo in quanto responsabile formazioni è fare da <strong>guardiano per la sopravvivenza di Formazing</strong>, ed assicurarti che nessuna di queste operazioni venga fatta, o meglio... di rendere presente a chiunque voglia fare queste operazioni che farle romperebbe Formazing e di conseguenza rovinerebbe la gestione delle formazioni.<br><br>
                         <em>Altra piccola nota:</em> la maggior parte di queste operazioni è comunque <strong>reversibile</strong>. Es.: se qualcuno cambia i nomi delle colonne su Notion, basta rimetterli come prima e tutto tornerà a funzionare; se qualcuno cambia i gruppi Telegram basta riusare quelli vecchi, ecc. Quindi <strong>niente panico</strong>: se succede qualcosa di strano controlla sempre che queste regole d'oro siano rispettate, e se non lo sono... basta rimettere tutto come prima.                
                     </p>
@@ -95,8 +95,8 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <div class="card-jemore h-100 border-start border-giallo-jemore border-4 p-3 shadow-none bg-light">
-                                <h5 class="fw-bold text-blu-jemore">Pianificata</h5>
-                                <p class="small text-muted mb-0">La formazione esiste su Notion. Formazing la vede ma non ha ancora inviato nulla. È lo stato con cui nasce ogni formazione.</p>
+                                <h5 class="fw-bold text-blu-jemore">Programmata</h5>
+                                <p class="small text-muted mb-0">La formazione esiste su Notion. Formazing la vede ma non ha ancora inviato nulla. È lo stato con cui nasce ogni formazione. Attenzione Formazing NON visualizza le formazioni senza data</p>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -266,7 +266,14 @@
                             {% set title = '2. App: Invio Comunicazioni' %}
                             {% set content = "
                             <p class='text-blu-jemore'>
-                                Apri Formazing, vai alla dashboard inserendo username e password. Nella tab <i>'Programmate'</i> troverai tutte le formazioni con stato <i>'Programmata'</i> di Notion. Clicca sul tasto <strong>Preview</strong>. Formazing creerà una preview con tutte le operazioni che eseguirà, così da mostrarti esattamente cosa succederà, permettendo di capire in anticipo se delle configurazioni sono errate. In particolare, dovresti controllare:
+                                Apri Formazing, vai alla dashboard e clicca sul tasto <strong>Preview</strong> di una formazione <i>'Programmata'</i>. Formazing aprirà un <strong>Editor Live</strong> professionale in modalità <i>Split-View</i>:
+                            </p>
+                            <ul class='small text-blu-jemore'>
+                                <li><strong>Editor a Sinistra:</strong> Qui troverai il testo generato automaticamente che puoi modificare liberamente. Puoi usare il Markdown per Telegram (es: **grassetto**) e l'HTML per l'Email.</li>
+                                <li><strong>Anteprima a Destra:</strong> Un mockup realistico che ti mostra esattamente come apparirà il messaggio nel fumetto di Telegram e nella mail di Outlook.</li>
+                            </ul>
+                            <p class='text-blu-jemore'>
+                                Dovresti controllare:
                             </p>
                             <ul class='small text-blu-jemore'>
                                 <li> Che il nome, l'area, la data e il periodo siano corretti. Nota bene: se ci sono degli errori o simili la colpa è... tua, Formazing non fa altro che leggere i nomi da notion, non li cambia né tocca in alcun modo, se ci sono degli errori o qualcosa non viene trovato prova a controllare cosa hai inserito su notion.</li>
@@ -275,14 +282,21 @@
                                 <li> Che la data/ora dell'evento Teams sia corretta. Nota bene: sarò ripetitivo ma se è sbagliata la colpa è... tua, Formazing prende la data e l'ora direttamente da Notion, se è sbagliata controlla i dati su Notion.</li>
                                 <li> Che i destinatari dell'email siano corretti. Ancora... se è sbagliato la colpa è tua, Formazing sceglie i destinatari in base all'area che hai inserito su Notion, se è sbagliata controlla i dati su Notion.</li>
                             </ul>
+                            <p class='text-blu-jemore'>
+                                Tutti questi dati (presi da notion) possono sì essere modificait nell'editor live, ma se compaiono subito errati nell'editor live, è perché i dati su Notion sono errati, quindi è meglio correggerli direttamente su Notion, l'editor serve per cambiare il TESTO dei messaggi, non per correggere i dati, altrimenti si rischia di creare discrepanze.
+                                <br><strong>La Sicurezza prima di tutto:</strong> Mentre personalizzi i messaggi, Formazing monitora meglio che può i dati vitali (Link Teams, Codice, Data, Nome). Se cancelli per sbaglio uno di questi dati, l'editor si colorerà di rosso e il tasto di invio diventerà <strong>Rosso</strong>, chiedendoti una conferma extra prima di procedere.
+                                Modifica le informazioni della formazione solo se sei sicuro di quello che stai facendo.
+                            </p>
+                            <p class='text-blu-jemore small opacity-75'>
+                                Se svuoti completamente un editor Telegram, quel messaggio verrà saltato; se svuoti l'email, verrà inviata quella di default.
+                            </p>
                             <p class='text-blu-jemore'> 
-                                Fatto ciò, il tuo lavoro è semplicemente quello di confermare l'operazione cliccando su <strong>'Conferma e Invia'</strong>. Formazing si occuperà di tutto il resto.
-                                La formazione è ora ufficialmente calendarizzata, i soci sono stati informati, il link Teams è stato creato e inserito su Notion, e tu puoi dedicarti ad organizzare al meglio la formazione.
+                                Controllati i dettagli, clicca su <strong>'Conferma e Invia'</strong>. Formazing si occuperà di creare l'evento Teams, inviare l'email e notificare i gruppi Telegram con i tuoi messaggi personalizzati.
                             </p>
                             <p class='text-blu-jemore'>
                                 Per conoscenza personale ti spiego anche cosa effettivamente e concretamente andrà a fare Formazing quando cliccherai su <strong>'Conferma e Invia'</strong>, così da sapere esattamente cosa accade e di conseguenza cosa NON devi fare manualmente su Notion o altrove. Formazing si occuperà di:
                             </p>
-                            <ul class='small text-blu-jemore'>
+                            <ul class='small list-unstyled text-blu-jemore'>
                                 <li><i class='bi bi-check2-circle text-success me-2'></i> Cambiare lo stato su Notion da 'Programmata' a 'Calendarizzata'.</li>
                                 <li><i class='bi bi-check2-circle text-success me-2'></i> Generare il codice univoco per la formazione.</li>
                                 <li><i class='bi bi-check2-circle text-success me-2'></i> Creare l'evento su Microsoft Teams.</li>
@@ -297,24 +311,21 @@
                             {% set title = '3. App: Chiusura e Feedback' %}
                             {% set content = "
                             <p class='text-blu-jemore'>
-                                Una volta conclusa la formazione è tempo di mandare il messaggio contenente il link di feedback. Torna sulla dashboard e clicca sulla tab <i>'Calendarizzate'</i>. Ricorda: questa tab mostra solo le formazioni con stato <i>'Calendarizzata'</i>, ossia tutte le formazioni 'ufficiali/confermate' che hanno già ricevuto le comunicazioni e sono solo in attesa di svolgersi. Clicca su <strong>Preview</strong>: esattamente come prima, Formazing mostrerà una preview con tutte le azioni che eseguirà. Tu dovrai solo controllare:
+                                Una volta conclusa la formazione, vai nella tab <i>'Calendarizzate'</i> e clicca su <strong>Preview</strong>. Anche in questa fase avrai a disposizione l'<strong>Editor Live</strong> con l'anteprima WYSIWYG per personalizzare il messaggio di richiesta feedback.
                             </p>
                             <ul class='small text-blu-jemore'>
-                                <li> Che il nome, l'area, la data e il periodo siano corretti.</li>
-                                <li> Che il codice sia corretto.</li>
-                                <li> Che i gruppi telegram siano corretti.</li>
-                                <li> Che il link al form di feedback sia corretto.</li>
+                                <li> Controlla che il link al form di feedback e il codice formazione siano presenti (il sistema ti avviserà in rosso se li rimuovi).</li>
+                                <li> Personalizza il messaggio se vuoi aggiungere ringraziamenti o note specifiche per la sessione appena conclusa.</li>
                             </ul>
                             <p class='text-blu-jemore'>
-                                Conferma l'operazione cliccando su <strong>'Conferma e Invia'</strong>. La formazione è ora conclusa, i soci hanno ricevuto il link per il feedback e tu hai finito il tuo lavoro!
-                                Non c'è nient'altro da fare: non devi aggiornare nulla su Notion, non devi inviare email, non devi creare eventi su Teams. Formazing si è occupata di tutto.
+                                Clicca su <strong>'Conferma e Invia'</strong>. Formazing si occuperà di inviare i messaggi personalizzati ai gruppi e aggiornare lo stato su Notion da 'Calendarizzata' a 'Conclusa'. Fine del lavoro!
                             </p>
                             <p class='text-blu-jemore'>
-                                Esattamente come prima ti spiego cosa succede quando clicchi su <strong>'Conferma e Invia'</strong>, così da sapere esattamente cosa accade e di conseguenza cosa NON devi fare manualmente su Notion o altrove. Formazing si occuperà di:
+                                Per conoscenza personale, ecco cosa farà Formazing:
                             </p>
-                            <ul class='small text-blu-jemore'>
-                                <li><i class='bi bi-check2-circle text-success me-2'></i> Inviare i messaggi Telegram con il link al form di feedback ai relativi gruppi Telegram.</li>
-                                <li><i class='bi bi-check2-circle text-success me-2'></i> Aggiornare lo stato su Notion, che passerà da 'Calendarizzata' a 'Conclusa'.</li>
+                            <ul class='small text-blu-jemore list-unstyled'>
+                                <li><i class='bi bi-check2-circle text-success me-2'></i> Inviare i messaggi Telegram con il link al form di feedback (eventualmente modificati da te).</li>
+                                <li><i class='bi bi-check2-circle text-success me-2'></i> Aggiornare lo stato su Notion a 'Conclusa'.</li>
                             </ul>
                             " %}
                             {% include 'atoms/tutorial_step.html' %}

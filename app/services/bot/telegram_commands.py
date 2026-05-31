@@ -59,7 +59,7 @@ class TelegramCommands:
         application.add_handler(CommandHandler("help", self.command_help))
         application.add_handler(CommandHandler("start", self.command_help))  # Alias
         
-        logger.info("✅ Command handlers registrati: /oggi, /domani, /settimana, /prossima_settimana, /help, /start")
+        logger.info("Command handlers registrati: /oggi, /domani, /settimana, /prossima_settimana, /help, /start")
     
     # ===============================
     # COMANDI BOT PUBBLICI
