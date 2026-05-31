@@ -53,6 +53,17 @@ function handleCancel() {
 }
 
 function handleConfirm(event, actionType, messagesCount) {
+    const submitBtn = event.submitter || document.querySelector('button[type="submit"]');
+    const isBroken = submitBtn && submitBtn.dataset.isBroken === "true";
+
+    // Se i dati sono manomessi, chiediamo una conferma extra (Soft Validation)
+    if (isBroken) {
+        const confirmMsg = "Attenzione: alcuni dati vitali di Notion (es. Link Teams, Codice o Data) sembrano essere stati rimossi o modificati.\n\nSei sicuro di voler procedere comunque con l'invio del messaggio potenzialmente incompleto?";
+        if (!window.confirm(confirmMsg)) {
+            return false; // Interrompe l'invio
+        }
+    }
+
     const titles = {
         'notification': 'Invio Notifiche in Corso',
         'feedback': 'Invio Richiesta Feedback'

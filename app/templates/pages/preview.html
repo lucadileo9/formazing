@@ -13,9 +13,9 @@
 
     <!-- Page Title Header -->
     {% set title = action_title %}
-    {% set subtitle = 'Verifica i dettagli dell\'operazione prima di procedere all\'invio definitivo.' %}
+    {% set subtitle = 'Controlla e personalizza i messaggi prima dell\'invio definitivo.' %}
     {% set icon = 'bi bi-clipboard2-check' if action_type == 'notification' else 'bi bi-chat-left-dots' %}
-    {% set margin_bottom = '5' %}
+    {% set margin_bottom = '4' %}
     {% include 'atoms/page_header.html' %}
 
     <div class="mb-5">
@@ -49,6 +49,9 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Editor Logic -->
+<script src="{{ url_for('static', filename='js/preview_editor.js') }}"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Hide loading overlay when preview page is fully loaded
