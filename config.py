@@ -172,10 +172,10 @@ class Config:
                     'level': cls.LOG_LEVEL,
                     'propagate': False
                 },
-                # Riduci verbosità librerie esterne
+                # Riduci verbosità librerie esterne per evitare spam di errori di rete
                 'telegram': {
                     'handlers': ['console', 'file'],
-                    'level': 'WARNING',
+                    'level': 'CRITICAL',
                     'propagate': False
                 },
                 'httpx': {
@@ -196,10 +196,10 @@ class Config:
         # Log messaggio di conferma configurazione
         logger = logging.getLogger(__name__)
         logger.info("=" * 80)
-        logger.info("🚀 Formazing Application - Logging configurato")
-        logger.info(f"📄 Log file: {cls.LOG_FILE} (max {cls.LOG_MAX_BYTES // (1024*1024)}MB, {cls.LOG_BACKUP_COUNT} backup)")
-        logger.info(f"📊 Log level: {cls.LOG_LEVEL}")
-        logger.info("🎨 Emoji servizi: 🗄️=Notion | 📧=Microsoft | 📱=Telegram | 🌐=Routes")
+        logger.info("[START] Formazing Application - Logging configurato")
+        logger.info(f"[LOGS] Log file: {cls.LOG_FILE} (max {cls.LOG_MAX_BYTES // (1024*1024)}MB, {cls.LOG_BACKUP_COUNT} backup)")
+        logger.info(f"Log level: {cls.LOG_LEVEL}")
+        logger.info("Servizi: Notion | Microsoft | Telegram | Routes")
         logger.info("=" * 80)
     
     @classmethod

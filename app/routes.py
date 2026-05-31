@@ -46,7 +46,7 @@ async def dashboard():
         force_refresh = request.args.get('force_refresh') == '1'
         
         if force_refresh:
-            logger.info("🔄 Richiesto ricaricamento forzato della dashboard")
+            logger.info("Richiesto ricaricamento forzato della dashboard")
             cache.delete('view//dashboard')
             # Dopo aver pulito la cache, facciamo un redirect all'URL pulito
             return redirect(url_for('main.dashboard'))
@@ -54,15 +54,15 @@ async def dashboard():
         # Prova a recuperare dalla cache
         cached_data = cache.get('view//dashboard')
         if cached_data:
-            logger.info("⚡ Dashboard caricata dalla cache")
+            logger.info("Dashboard caricata dalla cache")
             return cached_data
 
-        logger.info("📊 Caricamento dashboard da Notion...")
+        logger.info("Caricamento dashboard da Notion...")
         
         # Inizializzazione NotionService (via Singleton)
         training_service = TrainingService.get_instance()
         notion_service = training_service.notion_service
-        logger.debug("✅ NotionService recuperato da TrainingService Singleton")
+        logger.debug("NotionService recuperato da TrainingService Singleton")
         
         # CHIAMATA OTTIMIZZATA: Singola richiesta globale con paginazione gestita
         dashboard_data = await notion_service.get_dashboard_data()
@@ -79,7 +79,7 @@ async def dashboard():
         }
         stats['totale'] = stats['programmata'] + stats['calendarizzata'] + stats['conclusa']
         
-        logger.info(f"✅ Dashboard caricata | Totale: {stats['totale']} | "
+        logger.info(f"Dashboard caricata | Totale: {stats['totale']} | "
                    f"P: {stats['programmata']} | C: {stats['calendarizzata']} | "
                    f"F: {stats['conclusa']}")
         
@@ -98,13 +98,13 @@ async def dashboard():
                              
     except NotionServiceError as e:
         # Errore specifico NotionService
-        logger.error(f"❌ NotionService error nella dashboard: {e}", exc_info=True)
+        logger.error(f"NotionService error nella dashboard: {e}", exc_info=True)
         flash(f"❌ Errore servizio Notion: {e}", 'error')
         return redirect(url_for('main.home'))
         
     except Exception as e:
         # Errore generico
-        logger.error(f"❌ Errore imprevisto nella dashboard: {e}", exc_info=True)
+        logger.error(f"Errore imprevisto nella dashboard: {e}", exc_info=True)
         flash(f"❌ Errore imprevisto: {e}", 'error')
         return redirect(url_for('main.home'))
 
@@ -118,7 +118,7 @@ def guida():
             faq_data = yaml.safe_load(f)
         faqs = faq_data.get('faqs', [])
     except Exception as e:
-        logger.error(f"❌ Errore caricamento FAQ: {e}")
+        logger.error(f"Errore caricamento FAQ: {e}")
         faqs = []
         
     return render_template('pages/guida.html', 
@@ -160,13 +160,13 @@ def loading():
 def preview_notification_page(training_id):
     """Pagina preview calendarizzazione con form conferma."""
     try:
-        logger.info(f"� Preview calendarizzazione richiesta | Training ID: {training_id}")
+        logger.info(f"Preview calendarizzazione richiesta | Training ID: {training_id}")
         
         # Usa Singleton TrainingService
         training_service = TrainingService.get_instance()
         preview_data = asyncio.run(training_service.generate_preview(training_id))
         
-        logger.info(f"✅ Preview generata | Formazione: {preview_data['training'].get('Nome', 'N/A')}")
+        logger.info(f"Preview generata | Formazione: {preview_data['training'].get('Nome', 'N/A')}")
         
         # Renderizza template preview
         return render_template('pages/preview.html',
@@ -178,11 +178,11 @@ def preview_notification_page(training_id):
                              title=f"Preview - {preview_data['training']['Nome']}")
         
     except TrainingServiceError as e:
-        logger.error(f"❌ Errore preview calendarizzazione | Training ID: {training_id} | Error: {e}")
+        logger.error(f"Errore preview calendarizzazione | Training ID: {training_id} | Error: {e}")
         flash(f'❌ Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
-        logger.error(f"❌ Errore imprevisto preview calendarizzazione | Training ID: {training_id} | Error: {e}", exc_info=True)
+        logger.error(f"Errore imprevisto preview calendarizzazione | Training ID: {training_id} | Error: {e}", exc_info=True)
         flash(f'❌ Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -192,13 +192,13 @@ def preview_notification_page(training_id):
 def preview_feedback_page(training_id):
     """Pagina preview richiesta feedback con form conferma."""
     try:
-        logger.info(f"� Preview feedback richiesta | Training ID: {training_id}")
+        logger.info(f"Preview feedback richiesta | Training ID: {training_id}")
         
         # Usa Singleton TrainingService
         training_service = TrainingService.get_instance()
         preview_data = asyncio.run(training_service.generate_feedback_preview(training_id))
         
-        logger.info(f"✅ Preview feedback generata | Formazione: {preview_data['training'].get('Nome', 'N/A')}")
+        logger.info(f"Preview feedback generata | Formazione: {preview_data['training'].get('Nome', 'N/A')}")
         
         # Renderizza template preview
         return render_template('pages/preview.html',
@@ -210,11 +210,11 @@ def preview_feedback_page(training_id):
                              title=f"Preview Feedback - {preview_data['training']['Nome']}")
         
     except TrainingServiceError as e:
-        logger.error(f"❌ Errore preview feedback | Training ID: {training_id} | Error: {e}")
+        logger.error(f"Errore preview feedback | Training ID: {training_id} | Error: {e}")
         flash(f'❌ Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
-        logger.error(f"❌ Errore imprevisto preview feedback | Training ID: {training_id} | Error: {e}", exc_info=True)
+        logger.error(f"Errore imprevisto preview feedback | Training ID: {training_id} | Error: {e}", exc_info=True)
         flash(f'❌ Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -224,7 +224,7 @@ def preview_feedback_page(training_id):
 def confirm_notification(training_id):
     """Conferma ed esegue calendarizzazione con supporto a testi personalizzati."""
     try:
-        logger.info(f"🚀 Conferma calendarizzazione | Training ID: {training_id}")
+        logger.info(f"Conferma calendarizzazione | Training ID: {training_id}")
         
         # 1. Recupero testi personalizzati dal form
         custom_email_body = request.form.get('email_body')
@@ -250,7 +250,7 @@ def confirm_notification(training_id):
             custom_email_body=custom_email_body
         ))
         
-        logger.info(f"✅ Calendarizzazione completata | ID: {training_id} | Codice: {result.get('codice_generato', 'N/A')}")
+        logger.info(f"Calendarizzazione completata | ID: {training_id} | Codice: {result.get('codice_generato', 'N/A')}")
         
         # Invalida la cache della dashboard
         cache.delete('view//dashboard')
@@ -259,11 +259,11 @@ def confirm_notification(training_id):
         return redirect(url_for('main.dashboard'))
         
     except TrainingServiceError as e:
-        logger.error(f"❌ Errore conferma calendarizzazione: {e}")
+        logger.error(f"Errore conferma calendarizzazione: {e}")
         flash(f'❌ Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
-        logger.error(f"❌ Errore imprevisto conferma calendarizzazione: {e}", exc_info=True)
+        logger.error(f"Errore imprevisto conferma calendarizzazione: {e}", exc_info=True)
         flash(f'❌ Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -273,7 +273,7 @@ def confirm_notification(training_id):
 def confirm_feedback(training_id):
     """Conferma ed esegue invio feedback con supporto a messaggi personalizzati."""
     try:
-        logger.info(f"📝 Conferma invio feedback | Training ID: {training_id}")
+        logger.info(f"Conferma invio feedback | Training ID: {training_id}")
         
         # 1. Recupero messaggi Telegram personalizzati
         custom_messages = {}
@@ -291,7 +291,7 @@ def confirm_feedback(training_id):
             custom_messages=custom_messages
         ))
         
-        logger.info(f"✅ Feedback inviato con successo | ID: {training_id}")
+        logger.info(f"Feedback inviato con successo | ID: {training_id}")
         
         # Invalida la cache della dashboard
         cache.delete('view//dashboard')
@@ -300,10 +300,10 @@ def confirm_feedback(training_id):
         return redirect(url_for('main.dashboard'))
         
     except TrainingServiceError as e:
-        logger.error(f"❌ Errore conferma feedback: {e}")
+        logger.error(f"Errore conferma feedback: {e}")
         flash(f'❌ Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
-        logger.error(f"❌ Errore imprevisto conferma feedback: {e}", exc_info=True)
+        logger.error(f"Errore imprevisto conferma feedback: {e}", exc_info=True)
         flash(f'❌ Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
