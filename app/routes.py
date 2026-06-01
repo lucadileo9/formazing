@@ -13,6 +13,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app import auth, cache
 from app.services.notion import NotionService, NotionServiceError
 from app.services.training_service import TrainingService, TrainingServiceError
+from app.services.analytics_service import AnalyticsService
 from config import Config
 import logging
 import traceback
@@ -124,6 +125,37 @@ def guida():
     return render_template('pages/guida.html', 
                          title='Guida - Formazing',
                          faqs=faqs)
+
+
+@main.route('/analytics')
+@auth.login_required
+async def analytics():
+    """Pagina dedicata alle statistiche e grafici delle formazioni."""
+    try:
+        force_refresh = request.args.get('force_refresh') == '1'
+        
+        if force_refresh:
+            cache.delete('view//dashboard')
+            return redirect(url_for('main.analytics'))
+
+        logger.info("Accesso alla pagina Analytics")
+        
+        # Recupera tutti i dati (usa la cache se disponibile)
+        training_service = TrainingService.get_instance()
+        dashboard_data = await training_service.notion_service.get_dashboard_data()
+            
+        # Elaborazione tramite il nuovo AnalyticsService
+        analytics_service = AnalyticsService()
+        analytics_data = analytics_service.get_analytics_data(dashboard_data)
+        
+        return render_template('pages/analytics.html',
+                             data=analytics_data,
+                             title='Analytics - Formazing')
+                             
+    except Exception as e:
+        logger.error(f"Errore caricamento analytics: {e}", exc_info=True)
+        flash(f"❌ Errore caricamento grafici: {e}", 'error')
+        return redirect(url_for('main.dashboard'))
 
 
 @main.route('/loading')
