@@ -3,7 +3,7 @@
         <a href="{{ url_for('main.dashboard') }}" class="navbar-brand">
             <img src="{{ url_for('static', filename='images/logo_jemore.png') }}" alt="JEMORE">
         </a>
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center gap-3">
             <a href="{{ url_for('main.dashboard') }}" 
                class="nav-link-jemore">
                 <i class="bi bi-speedometer2 me-1"></i> Dashboard
@@ -16,6 +16,19 @@
                class="nav-link-jemore">
                 <i class="bi bi-mortarboard me-1"></i> Guida
             </a>
+
+            {% if current_user %}
+            <!-- User Menu / Logout -->
+            <div class="ms-3 d-flex align-items-center border-start ps-3 border-light border-opacity-25">
+                <div class="text-white text-end me-3 d-none d-md-block">
+                    <div class="small fw-bold lh-1">{{ current_user.name }}</div>
+                    <div class="extra-small opacity-75">{{ 'Amministratore' if is_admin else 'Socio' }}</div>
+                </div>
+                <a href="{{ url_for('main.logout') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 extra-small">
+                    Logout <i class="bi bi-box-arrow-right ms-1"></i>
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
 </nav>

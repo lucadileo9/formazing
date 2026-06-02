@@ -67,30 +67,37 @@
     <!-- Azioni -->
     <td>
         <div class="d-flex gap-2 align-items-center">
-            {% if formazione.get('Stato') == 'Programmata' %}
-                <!-- Preview Calendarizzazione per formazioni Programmate -->
-                {% set variant = 'btn-jemore-giallo' %}
-                {% set size = 'btn-sm' %}
-                {% set text = 'Preview' %}
-                {% set icon = none %}
-                {% set onclick = "showPreview('" ~ formazione.get('_notion_id', '') ~ "', 'notification')" %}
-                {% include 'atoms/button.html' %}
-            {% elif formazione.get('Stato') == 'Calendarizzata' %}
-                <!-- Preview Feedback per formazioni Calendarizzate -->
-                {% set variant = 'btn-jemore-blu' %}
-                {% set size = 'btn-sm' %}
-                {% set text = 'Preview' %}
-                {% set icon = none %}
-                {% set onclick = "showPreview('" ~ formazione.get('_notion_id', '') ~ "', 'feedback')" %}
-                {% include 'atoms/button.html' %}
+            {% if is_admin %}
+                {% if formazione.get('Stato') == 'Programmata' %}
+                    <!-- Preview Calendarizzazione per formazioni Programmate -->
+                    {% set variant = 'btn-jemore-giallo' %}
+                    {% set size = 'btn-sm' %}
+                    {% set text = 'Preview' %}
+                    {% set icon = none %}
+                    {% set onclick = "showPreview('" ~ formazione.get('_notion_id', '') ~ "', 'notification')" %}
+                    {% include 'atoms/button.html' %}
+                {% elif formazione.get('Stato') == 'Calendarizzata' %}
+                    <!-- Preview Feedback per formazioni Calendarizzate -->
+                    {% set variant = 'btn-jemore-blu' %}
+                    {% set size = 'btn-sm' %}
+                    {% set text = 'Preview' %}
+                    {% set icon = none %}
+                    {% set onclick = "showPreview('" ~ formazione.get('_notion_id', '') ~ "', 'feedback')" %}
+                    {% include 'atoms/button.html' %}
+                {% else %}
+                    <!-- Nessuna azione per formazioni Concluse -->
+                    {% set variant = 'btn-jemore-verde' %}
+                    {% set size = 'btn-sm' %}
+                    {% set text = 'Completata' %}
+                    {% set icon = none %}
+                    {% set disabled = true %}
+                    {% include 'atoms/button.html' %}
+                {% endif %}
             {% else %}
-                <!-- Nessuna azione per formazioni Concluse -->
-                {% set variant = 'btn-jemore-verde' %}
-                {% set size = 'btn-sm' %}
-                {% set text = 'Completata' %}
-                {% set icon = none %}
-                {% set disabled = true %}
-                {% include 'atoms/button.html' %}
+                <!-- Messaggio Sola Lettura per non-admin -->
+                <span class="badge bg-light text-muted border py-2 px-3 extra-small">
+                    <i class="bi bi-eye-fill me-1"></i> Sola Lettura
+                </span>
             {% endif %}
         </div>
     </td>
