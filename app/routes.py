@@ -87,8 +87,11 @@ def auth_callback():
 def logout():
     """Effettua il logout svuotando la sessione."""
     session.clear()
-    flash("Logout effettuato con successo.", "info")
-    return redirect(url_for('main.home'))
+    
+    auth_service = AuthService.get_instance()
+    logout_url = auth_service.build_logout_url(url_for('main.home', _external=True))
+    
+    return redirect(logout_url)
 
 
 # --- ROTTE DELL'APPLICAZIONE ---

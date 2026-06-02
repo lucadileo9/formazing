@@ -59,6 +59,13 @@ class AuthService:
             redirect_uri=Config.MSAL_REDIRECT_URI
         )
 
+    def build_logout_url(self, redirect_to):
+        """Genera l'URL per il logout da Microsoft."""
+        return (
+            f"{Config.MSAL_AUTHORITY}/oauth2/v2.0/logout"
+            f"?post_logout_redirect_uri={redirect_to}"
+        )
+
     @classmethod
     def get_instance(cls):
         """Factory method per ottenere l'istanza singleton."""
