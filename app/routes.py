@@ -11,7 +11,7 @@ Gestisce tutte le pagine web dell'applicazione:
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from app import cache
-from app.auth_sso import AuthService, login_required, admin_required
+from app.services.auth_sso import AuthService, login_required, admin_required
 from app.services.notion import NotionService, NotionServiceError
 from app.services.training_service import TrainingService, TrainingServiceError
 from app.services.analytics_service import AnalyticsService

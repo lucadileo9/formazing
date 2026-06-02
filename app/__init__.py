@@ -60,7 +60,7 @@ def create_app():
     # 🎯 Inizializza Servizi Singleton all'avvio
     logger.info("Inizializzazione Servizi Singleton...")
     
-    from app.auth_sso import AuthService
+    from app.services.auth_sso import AuthService
     AuthService.get_instance()
     
     from app.services.training_service import TrainingService
