@@ -1,31 +1,38 @@
 {% extends "layout/base.html" %}
 
 {% block content %}
-<div class="container-fluid d-flex flex-column align-items-center justify-content-center min-vh-100 bg-blu-jemore text-white">
-    <div class="text-center">
-        <!-- Logo JEMORE con animazione a scatti (step-rotation) -->
-        <div class="mb-5 logo-container">
-            <img src="{{ url_for('static', filename='images/logo_jemore.png') }}" alt="JEMORE" class="img-fluid step-spin-animation" style="max-height: 120px;">
+<div class="container-fluid d-flex flex-column align-items-center justify-content-center bg-blu-jemore text-bianco-latte vh-100 overflow-hidden">
+    <div class="text-center d-flex flex-column align-items-center gap-4">
+        
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo_jemore.png') }}" 
+                 alt="JEMORE" 
+                 class="img-fluid step-spin-animation" 
+                 style="max-height: 120px; width: auto;">
         </div>
         
-        <div class="loading-content mb-4">
-            <h2 class="h3 fw-bold mb-2 mt-4">{{ loading_title }}</h2>
+        <div class="loading-content">
+            <h2 class="h3 fw-bold">{{ loading_title }}</h2>
             <p class="text-white-50 lead">{{ loading_message }}</p>
         </div>
     </div>
 </div>
 
 <style>
-    /* Rimuoviamo header e footer solo per questa pagina per massimizzare l'impatto */
     header, footer { display: none !important; }
     
+    /* Forza il body a non scrollare mai */
+    body, html {
+        height: 100%;
+        margin: 0;
+        overflow: hidden; /* Blocca lo scroll a livello di pagina */
+    }
+
     .logo-container {
         perspective: 1000px;
     }
 
-    /* Animazione di rotazione fluida */
     .step-spin-animation {
-        /* Usiamo linear per una rotazione costante o ease-in-out per un effetto più organico */
         animation: step-spin 2.5s ease-in-out infinite;
     }
 
@@ -34,7 +41,6 @@
         to { transform: rotate(360deg); }
     }
 
-    /* Nascondiamo l'overlay globale perché questa pagina È essa stessa un overlay */
     #loadingOverlay { display: none !important; }
 </style>
 
