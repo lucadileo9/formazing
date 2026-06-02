@@ -116,34 +116,30 @@ async def dashboard():
     """Dashboard principale con formazioni organizzate per status (Flask Async)."""
     try:
         force_refresh = request.args.get('force_refresh') == '1'
+        cache_key = 'dashboard_data_notion'
         
         if force_refresh:
-            logger.info("Richiesto ricaricamento forzato della dashboard")
-            cache.delete('view//dashboard')
-            # Dopo aver pulito la cache, facciamo un redirect all'URL pulito
+            logger.info("Richiesto ricaricamento forzato dei dati da Notion")
+            cache.delete(cache_key)
             return redirect(url_for('main.dashboard'))
         
-        # Prova a recuperare dalla cache
-        cached_data = cache.get('view//dashboard')
-        if cached_data:
-            logger.info("Dashboard caricata dalla cache")
-            return cached_data
+        # Prova a recuperare i DATI dalla cache
+        dashboard_data = cache.get(cache_key)
+        
+        if dashboard_data:
+            logger.info("Dati dashboard recuperati dalla cache")
+        else:
+            logger.info("Dati non in cache. Caricamento da Notion...")
+            training_service = TrainingService.get_instance()
+            # CHIAMATA OTTIMIZZATA: Singola richiesta globale
+            dashboard_data = await training_service.notion_service.get_dashboard_data()
+            # Salva i dati grezzi in cache per 10 minuti
+            cache.set(cache_key, dashboard_data, timeout=600)
 
-        logger.info("Caricamento dashboard da Notion...")
-        
-        # Inizializzazione NotionService (via Singleton)
-        training_service = TrainingService.get_instance()
-        notion_service = training_service.notion_service
-        logger.debug("NotionService recuperato da TrainingService Singleton")
-        
-        # CHIAMATA OTTIMIZZATA: Singola richiesta globale con paginazione gestita
-        dashboard_data = await notion_service.get_dashboard_data()
-        
         formazioni_programmata = dashboard_data.get('Programmata', [])
         formazioni_calendarizzata = dashboard_data.get('Calendarizzata', [])
         formazioni_conclusa = dashboard_data.get('Conclusa', [])
         
-        # Statistiche con null safety
         stats = {
             'programmata': len(formazioni_programmata),
             'calendarizzata': len(formazioni_calendarizzata),
@@ -151,22 +147,13 @@ async def dashboard():
         }
         stats['totale'] = stats['programmata'] + stats['calendarizzata'] + stats['conclusa']
         
-        logger.info(f"Dashboard caricata | Totale: {stats['totale']} | "
-                   f"P: {stats['programmata']} | C: {stats['calendarizzata']} | "
-                   f"F: {stats['conclusa']}")
-        
-        # Usa il nuovo template atomic design
-        response_html = render_template('pages/dashboard.html',
+        # Renderizza il template OGNI VOLTA (così i messaggi flash sono dinamici)
+        return render_template('pages/dashboard.html',
                              formazioni_programmata=formazioni_programmata,
                              formazioni_calendarizzata=formazioni_calendarizzata,
                              formazioni_conclusa=formazioni_conclusa,
                              stats=stats,
                              title='Dashboard - Formazing')
-        
-        # Salva in cache per 10 minuti
-        cache.set('view//dashboard', response_html, timeout=600)
-        
-        return response_html
                              
     except NotionServiceError as e:
         # Errore specifico NotionService
@@ -205,16 +192,22 @@ async def analytics():
     """Pagina dedicata alle statistiche e grafici delle formazioni."""
     try:
         force_refresh = request.args.get('force_refresh') == '1'
+        cache_key = 'dashboard_data_notion'
         
         if force_refresh:
-            cache.delete('view//dashboard')
+            cache.delete(cache_key)
             return redirect(url_for('main.analytics'))
 
         logger.info("Accesso alla pagina Analytics")
         
-        # Recupera tutti i dati (usa la cache se disponibile)
-        training_service = TrainingService.get_instance()
-        dashboard_data = await training_service.notion_service.get_dashboard_data()
+        # Prova a recuperare i DATI dalla cache
+        dashboard_data = cache.get(cache_key)
+        
+        if not dashboard_data:
+            logger.info("Dati non in cache. Caricamento da Notion per analytics...")
+            training_service = TrainingService.get_instance()
+            dashboard_data = await training_service.notion_service.get_dashboard_data()
+            cache.set(cache_key, dashboard_data, timeout=600)
             
         # Elaborazione tramite il nuovo AnalyticsService
         analytics_service = AnalyticsService()
@@ -356,8 +349,8 @@ async def confirm_notification(training_id):
         
         logger.info(f"Calendarizzazione completata | ID: {training_id} | Codice: {result.get('codice_generato', 'N/A')}")
         
-        # Invalida la cache della dashboard
-        cache.delete('view//dashboard')
+        # Invalida la cache dei dati dashboard
+        cache.delete('dashboard_data_notion')
         
         flash('✅ Comunicazione inviata con successo! La formazione è stata calendarizzata.', 'success')
         return redirect(url_for('main.dashboard'))
@@ -397,8 +390,8 @@ async def confirm_feedback(training_id):
         
         logger.info(f"Feedback inviato con successo | ID: {training_id}")
         
-        # Invalida la cache della dashboard
-        cache.delete('view//dashboard')
+        # Invalida la cache dei dati dashboard
+        cache.delete('dashboard_data_notion')
         
         flash('✅ Richiesta feedback inviata con successo! La formazione è stata conclusa.', 'success')
         return redirect(url_for('main.dashboard'))
