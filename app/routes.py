@@ -182,6 +182,7 @@ async def dashboard():
 
 
 @main.route('/guida')
+@login_required
 def guida():
     """Pagina Tutorial e FAQ con dati da YAML."""
     try:
