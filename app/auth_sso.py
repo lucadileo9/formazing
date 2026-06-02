@@ -5,6 +5,7 @@ Auth SSO Service - Gestione autenticazione Microsoft e permessi RBAC.
 import msal
 import logging
 import threading
+import asyncio
 from flask import session, redirect, url_for
 from functools import wraps
 from config import Config
@@ -71,7 +72,7 @@ class AuthService:
 def login_required(f):
     """Protegge le rotte richiedendo il login e il dominio corretto."""
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    async def decorated_function(*args, **kwargs):
         user = session.get('user')
         if not user:
             logger.info("Accesso negato: utente non loggato. Redirect a login.")
@@ -86,6 +87,9 @@ def login_required(f):
             session.clear()
             return "Dominio non autorizzato. Usa l'account JEMORE.", 403
             
+        # Gestione asincrona: se la funzione originale è async, dobbiamo attenderla
+        if asyncio.iscoroutinefunction(f):
+            return await f(*args, **kwargs)
         return f(*args, **kwargs)
     return decorated_function
 
@@ -93,7 +97,7 @@ def login_required(f):
 def admin_required(f):
     """Protegge le rotte critiche richiedendo privilegi di admin."""
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    async def decorated_function(*args, **kwargs):
         # Prima assicurati che sia loggato
         user = session.get('user')
         if not user:
@@ -105,5 +109,8 @@ def admin_required(f):
             logger.warning(f"Accesso negato a risorsa admin per: {email}")
             return "Accesso Negato: Non hai i permessi per eseguire questa operazione.", 403
             
+        # Gestione asincrona
+        if asyncio.iscoroutinefunction(f):
+            return await f(*args, **kwargs)
         return f(*args, **kwargs)
     return decorated_function
