@@ -9,8 +9,9 @@ Gestisce tutte le pagine web dell'applicazione:
 - Pagine di gestione e preview
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from app import auth, cache
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
+from app import cache
+from app.auth_sso import AuthService, login_required, admin_required
 from app.services.notion import NotionService, NotionServiceError
 from app.services.training_service import TrainingService, TrainingServiceError
 from app.services.analytics_service import AnalyticsService
@@ -27,6 +28,70 @@ logger = logging.getLogger(__name__)
 # Blueprint principale per le routes
 main = Blueprint('main', __name__)
 
+# --- ROTTE DI AUTENTICAZIONE SSO ---
+
+@main.route('/login')
+def login():
+    """Avvia il flusso di login Microsoft."""
+    auth_service = AuthService.get_instance()
+    auth_url = auth_service.build_auth_url()
+    return redirect(auth_url)
+
+
+@main.route('/auth/callback')
+def auth_callback():
+    """Riceve il codice da Microsoft e completa l'autenticazione."""
+    code = request.args.get('code')
+    if not code:
+        flash("❌ Errore durante il login: codice mancante.", "error")
+        return redirect(url_for('main.home'))
+    
+    auth_service = AuthService.get_instance()
+    result = auth_service.get_token_from_code(code)
+    
+    if "error" in result:
+        logger.error(f"Errore MSAL callback: {result.get('error_description')}")
+        flash(f"❌ Errore login: {result.get('error')}", "error")
+        return redirect(url_for('main.home'))
+    
+    # Estraiamo i dati utente dal token (ID Token)
+    id_token_claims = result.get("id_token_claims")
+    if not id_token_claims:
+        flash("❌ Impossibile recuperare i dati utente.", "error")
+        return redirect(url_for('main.home'))
+        
+    email = id_token_claims.get('preferred_username', '').lower()
+    
+    # 1. Validazione Dominio
+    domain = email.split('@')[-1] if '@' in email else ''
+    if domain not in Config.ALLOWED_DOMAINS:
+        logger.warning(f"Accesso negato: dominio '{domain}' non autorizzato per {email}")
+        return render_template('pages/error.html', 
+                             message="Dominio non autorizzato. Usa l'account JEMORE.",
+                             title="Accesso Negato")
+    
+    # 2. Setup Sessione
+    session['user'] = id_token_claims
+    
+    # 3. RBAC: Controllo se Admin
+    is_admin = email in [a.lower() for a in Config.ADMIN_USERS]
+    session['is_admin'] = is_admin
+    
+    logger.info(f"Utente loggato: {email} | Admin: {is_admin}")
+    flash(f"✅ Benvenuto, {id_token_claims.get('name')}!", "success")
+    
+    return redirect(url_for('main.dashboard'))
+
+
+@main.route('/logout')
+def logout():
+    """Effettua il logout svuotando la sessione."""
+    session.clear()
+    flash("Logout effettuato con successo.", "info")
+    return redirect(url_for('main.home'))
+
+
+# --- ROTTE DELL'APPLICAZIONE ---
 
 @main.route('/')
 def home():
@@ -34,13 +99,16 @@ def home():
     Homepage con form di login.
     Se già autenticato, redirect alla dashboard.
     """
+    if session.get('user'):
+        return redirect(url_for('main.dashboard'))
+        
     return render_template('pages/login.html', 
                          title='Formazing - Gestione Formazioni',
                          app_name='Formazing')
 
 
 @main.route('/dashboard')
-@auth.login_required
+@login_required
 async def dashboard():
     """Dashboard principale con formazioni organizzate per status (Flask Async)."""
     try:
@@ -128,7 +196,7 @@ def guida():
 
 
 @main.route('/analytics')
-@auth.login_required
+@login_required
 async def analytics():
     """Pagina dedicata alle statistiche e grafici delle formazioni."""
     try:
@@ -188,7 +256,7 @@ def loading():
 # === PAGINE PREVIEW CON FORM CONFERMA ===
 
 @main.route('/preview/notification/<training_id>')
-@auth.login_required
+@admin_required
 def preview_notification_page(training_id):
     """Pagina preview calendarizzazione con form conferma."""
     try:
@@ -220,7 +288,7 @@ def preview_notification_page(training_id):
 
 
 @main.route('/preview/feedback/<training_id>')
-@auth.login_required
+@admin_required
 def preview_feedback_page(training_id):
     """Pagina preview richiesta feedback con form conferma."""
     try:
@@ -252,7 +320,7 @@ def preview_feedback_page(training_id):
 
 
 @main.route('/confirm/notification/<training_id>', methods=['POST'])
-@auth.login_required
+@admin_required
 def confirm_notification(training_id):
     """Conferma ed esegue calendarizzazione con supporto a testi personalizzati."""
     try:
@@ -301,7 +369,7 @@ def confirm_notification(training_id):
 
 
 @main.route('/confirm/feedback/<training_id>', methods=['POST'])
-@auth.login_required
+@admin_required
 def confirm_feedback(training_id):
     """Conferma ed esegue invio feedback con supporto a messaggi personalizzati."""
     try:
