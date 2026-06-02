@@ -12,13 +12,11 @@ Gestisce tutte le pagine web dell'applicazione:
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from app import cache
 from app.services.auth_sso import AuthService, login_required, admin_required
-from app.services.notion import NotionService, NotionServiceError
+from app.services.notion import NotionServiceError
 from app.services.training_service import TrainingService, TrainingServiceError
 from app.services.analytics_service import AnalyticsService
 from config import Config
 import logging
-import traceback
-import asyncio
 import yaml
 import os
 
@@ -43,7 +41,7 @@ def auth_callback():
     """Riceve il codice da Microsoft e completa l'autenticazione."""
     code = request.args.get('code')
     if not code:
-        flash("❌ Errore durante il login: codice mancante.", "error")
+        flash("Errore durante il login: codice mancante.", "error")
         return redirect(url_for('main.home'))
     
     auth_service = AuthService.get_instance()
@@ -51,13 +49,13 @@ def auth_callback():
     
     if "error" in result:
         logger.error(f"Errore MSAL callback: {result.get('error_description')}")
-        flash(f"❌ Errore login: {result.get('error')}", "error")
+        flash(f"Errore login: {result.get('error')}", "error")
         return redirect(url_for('main.home'))
     
     # Estraiamo i dati utente dal token (ID Token)
     id_token_claims = result.get("id_token_claims")
     if not id_token_claims:
-        flash("❌ Impossibile recuperare i dati utente.", "error")
+        flash("Impossibile recuperare i dati utente.", "error")
         return redirect(url_for('main.home'))
         
     email = id_token_claims.get('preferred_username', '').lower()
@@ -90,6 +88,7 @@ def logout():
     
     auth_service = AuthService.get_instance()
     logout_url = auth_service.build_logout_url(url_for('main.home', _external=True))
+    flash("Logout effettuato con successo.", "info")
     
     return redirect(logout_url)
 
@@ -104,7 +103,6 @@ def home():
     """
     if session.get('user'):
         return redirect(url_for('main.dashboard'))
-        
     return render_template('pages/login.html', 
                          title='Formazing - Gestione Formazioni',
                          app_name='Formazing')
@@ -158,13 +156,13 @@ async def dashboard():
     except NotionServiceError as e:
         # Errore specifico NotionService
         logger.error(f"NotionService error nella dashboard: {e}", exc_info=True)
-        flash(f"❌ Errore servizio Notion: {e}", 'error')
+        flash(f"Errore servizio Notion: {e}", 'error')
         return redirect(url_for('main.home'))
         
     except Exception as e:
         # Errore generico
         logger.error(f"Errore imprevisto nella dashboard: {e}", exc_info=True)
-        flash(f"❌ Errore imprevisto: {e}", 'error')
+        flash(f"Errore imprevisto: {e}", 'error')
         return redirect(url_for('main.home'))
 
 
@@ -219,7 +217,7 @@ async def analytics():
                              
     except Exception as e:
         logger.error(f"Errore caricamento analytics: {e}", exc_info=True)
-        flash(f"❌ Errore caricamento grafici: {e}", 'error')
+        flash(f"Errore caricamento grafici: {e}", 'error')
         return redirect(url_for('main.dashboard'))
 
 
@@ -276,11 +274,11 @@ async def preview_notification_page(training_id):
         
     except TrainingServiceError as e:
         logger.error(f"Errore preview calendarizzazione | Training ID: {training_id} | Error: {e}")
-        flash(f'❌ Errore: {e}', 'error')
+        flash(f'Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
         logger.error(f"Errore imprevisto preview calendarizzazione | Training ID: {training_id} | Error: {e}", exc_info=True)
-        flash(f'❌ Errore imprevisto: {e}', 'error')
+        flash(f'Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
 
 
@@ -308,11 +306,11 @@ async def preview_feedback_page(training_id):
         
     except TrainingServiceError as e:
         logger.error(f"Errore preview feedback | Training ID: {training_id} | Error: {e}")
-        flash(f'❌ Errore: {e}', 'error')
+        flash(f'Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
         logger.error(f"Errore imprevisto preview feedback | Training ID: {training_id} | Error: {e}", exc_info=True)
-        flash(f'❌ Errore imprevisto: {e}', 'error')
+        flash(f'Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
 
 
@@ -357,11 +355,11 @@ async def confirm_notification(training_id):
         
     except TrainingServiceError as e:
         logger.error(f"Errore conferma calendarizzazione: {e}")
-        flash(f'❌ Errore: {e}', 'error')
+        flash(f'Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
         logger.error(f"Errore imprevisto conferma calendarizzazione: {e}", exc_info=True)
-        flash(f'❌ Errore imprevisto: {e}', 'error')
+        flash(f'Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
 
 
@@ -398,9 +396,9 @@ async def confirm_feedback(training_id):
         
     except TrainingServiceError as e:
         logger.error(f"Errore conferma feedback: {e}")
-        flash(f'❌ Errore: {e}', 'error')
+        flash(f'Errore: {e}', 'error')
         return redirect(url_for('main.dashboard'))
     except Exception as e:
         logger.error(f"Errore imprevisto conferma feedback: {e}", exc_info=True)
-        flash(f'❌ Errore imprevisto: {e}', 'error')
+        flash(f'Errore imprevisto: {e}', 'error')
         return redirect(url_for('main.dashboard'))
