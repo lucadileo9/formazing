@@ -10,16 +10,12 @@ Configurazione centralizzata dell'applicazione Flask con:
 - Logging configurato
 """
 
-from flask import Flask
-from flask_httpauth import HTTPBasicAuth
+from flask import Flask, session
 from flask_caching import Cache
 from config import Config
 import logging
 
-# Inizializza l'autenticazione Basic HTTP
-auth = HTTPBasicAuth()
-
-# Inizializza il sistema di Caching (Backend in memoria)
+# Inizializza il sistema di Caching
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 600})
 
 # Logger per app factory
@@ -44,25 +40,29 @@ def create_app():
     
     # Inizializza la cache con l'app
     cache.init_app(app)
-    logger.info(f"Configurazione Flask caricata (DEBUG={Config.DEBUG}, CACHE attiva)")
     
-    # Registra il sistema di autenticazione
-    @auth.verify_password
-    def verify_password(username, password):
-        """Verifica credenziali Basic Auth."""
-        return (username == Config.BASIC_AUTH_USERNAME and 
-                password == Config.BASIC_AUTH_PASSWORD)
-    
-    logger.info("Basic Authentication configurata")
-    
-    # Registra le routes
+    # --- CONTEXT PROCESSOR GLOBALE ---
+    @app.context_processor
+    def inject_user_data():
+        """Rende i dati utente disponibili in tutti i template Jinja."""
+        user = session.get('user')
+        return {
+            'current_user': user,
+            'is_admin': session.get('is_admin', False),
+            'app_name': 'Formazing'
+        }
+
+    # Registra le rotte (Blueprint principale)
     from app.routes import main
     app.register_blueprint(main)
     logger.info("Routes registrate (Blueprint 'main')")
     
-    # 🎯 Inizializza TrainingService Singleton all'avvio
-    # Questo garantisce che il bot Telegram sia online PRIMA di gestire richieste
-    logger.info("Inizializzazione TrainingService Singleton...")
+    # 🎯 Inizializza Servizi Singleton all'avvio
+    logger.info("Inizializzazione Servizi Singleton...")
+    
+    from app.services.auth_sso import AuthService
+    AuthService.get_instance()
+    
     from app.services.training_service import TrainingService
     training_service = TrainingService.get_instance()
     logger.info("TrainingService pronto (bot Telegram configurato)")

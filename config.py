@@ -23,10 +23,16 @@ class Config:
     
     # ===== FLASK CONFIG =====
     SECRET_KEY = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
-    BASIC_AUTH_USERNAME = os.getenv('FLASK_BASIC_AUTH_USERNAME', 'admin')
-    BASIC_AUTH_PASSWORD = os.getenv('FLASK_BASIC_AUTH_PASSWORD')
     FLASK_PORT = int(os.getenv('FLASK_PORT', 5000))
     DEBUG = os.getenv('DEBUG_MODE', 'False').lower() == 'true'
+
+    # ===== AUTH & RBAC CONFIG (Microsoft SSO) =====
+    ALLOWED_DOMAINS = os.getenv('ALLOWED_DOMAINS', 'jemore.it').split(',')
+    ADMIN_USERS = os.getenv('ADMIN_USERS', '').split(',')
+    MSAL_REDIRECT_URI = os.getenv('MSAL_REDIRECT_URI', f'http://localhost:{FLASK_PORT}/auth/callback')
+    # Authority URL per JEMORE (Single Tenant o Common)
+    MSAL_AUTHORITY = f"https://login.microsoftonline.com/{os.getenv('MICROSOFT_TENANT_ID', 'common')}"
+    MSAL_SCOPES = ["User.Read"]
     
     # ===== TELEGRAM CONFIG =====
     TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')

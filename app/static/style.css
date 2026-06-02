@@ -116,7 +116,6 @@ body {
 /* Navigation */
 .navbar-jemore {
     background-color: var(--bianco-latte);
-    padding: 0.5rem 0;
     margin-bottom: 2rem;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
 }
@@ -125,23 +124,49 @@ body {
     max-height: 34px;
     width: auto;
     height: auto;
-    /* display: block; */
 }
 
-.navbar-jemore .navbar-brand,
 .nav-link-jemore {
     color: var(--blu-jemore);
     font-weight: 500;
     padding: 8px 16px;
     border-radius: 8px;
     text-decoration: none;
+    transition: all 0.2s;
 }
 
 .nav-link-jemore:hover {
     background-color: var(--blu-jemore);
-    color: white;
+    color: white !important;
 }
 
+.navbar-toggler {
+    font-size: 1.5rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Responsive Utilities for Header */
+@media (min-width: 992px) {
+    .border-start-lg {
+        border-left: 1px solid currentColor !important;
+    }
+    .text-end-lg {
+        text-align: right !important;
+    }
+    .ps-lg-3 {
+        padding-left: 1rem !important;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .nav-link-jemore {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .border-start-lg {
+        border-left: none !important;
+    }
+}
 
 /* Tabs Dashboard */
 .nav-tabs { border: none; }

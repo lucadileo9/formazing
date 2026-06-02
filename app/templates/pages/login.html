@@ -11,19 +11,21 @@
                         <img src="{{ url_for('static', filename='images/logo_jemore.png') }}" alt="JEMORE" class="img-fluid mb-4" style="max-height: 80px;">
 
                         <h1 class="h4 fw-bold">{{ app_name|default('Formazing') }}</h1>
-                        <p class="small">Gestione Formazioni Aziendali</p>
+                        <p class="small">Gestione Formazioni</p>
                     </div>
 
-                    <div class="alert bg-blu-jemore text-bianco-latte border-0 mb-4 py-2 px-3 small shadow-sm">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Accesso richiesto:</strong> Inserisci le tue credenziali.
+                    <div class="alert bg-light text-blu-jemore border-0 mb-4 py-3 px-3 small shadow-sm text-center">
+                        <i class="bi bi-shield-lock-fill me-2"></i>
+                        Utilizza il tuo account <strong>JEMORE</strong> per accedere alla piattaforma.
                     </div>
                     <div class="text-center">
-                        {% set text = 'Accedi alla Dashboard' %}
-                        {% set icon = 'bi bi-speedometer2' %}
-                        {% set variant = 'btn-jemore-giallo w-100' %}
-                        {% set onclick = "window.location.href = '/dashboard'" %}
-                        {% include 'atoms/button.html' %}
+                        <a href="{{ url_for('main.login') }}" class="btn btn-jemore-blu w-100 py-2 shadow-sm d-flex align-items-center justify-content-center">
+                            <i class="bi bi-microsoft me-2 fs-5"></i> 
+                            <span>Accedi con Microsoft</span>
+                        </a>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <p class="extra-small text-muted mb-0">L'accesso è riservato ai soci JEMORE.</p>
                     </div>
                 </div>
             </div>

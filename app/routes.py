@@ -9,8 +9,9 @@ Gestisce tutte le pagine web dell'applicazione:
 - Pagine di gestione e preview
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from app import auth, cache
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
+from app import cache
+from app.services.auth_sso import AuthService, login_required, admin_required
 from app.services.notion import NotionService, NotionServiceError
 from app.services.training_service import TrainingService, TrainingServiceError
 from app.services.analytics_service import AnalyticsService
@@ -27,6 +28,73 @@ logger = logging.getLogger(__name__)
 # Blueprint principale per le routes
 main = Blueprint('main', __name__)
 
+# --- ROTTE DI AUTENTICAZIONE SSO ---
+
+@main.route('/login')
+def login():
+    """Avvia il flusso di login Microsoft."""
+    auth_service = AuthService.get_instance()
+    auth_url = auth_service.build_auth_url()
+    return redirect(auth_url)
+
+
+@main.route('/auth/callback')
+def auth_callback():
+    """Riceve il codice da Microsoft e completa l'autenticazione."""
+    code = request.args.get('code')
+    if not code:
+        flash("❌ Errore durante il login: codice mancante.", "error")
+        return redirect(url_for('main.home'))
+    
+    auth_service = AuthService.get_instance()
+    result = auth_service.get_token_from_code(code)
+    
+    if "error" in result:
+        logger.error(f"Errore MSAL callback: {result.get('error_description')}")
+        flash(f"❌ Errore login: {result.get('error')}", "error")
+        return redirect(url_for('main.home'))
+    
+    # Estraiamo i dati utente dal token (ID Token)
+    id_token_claims = result.get("id_token_claims")
+    if not id_token_claims:
+        flash("❌ Impossibile recuperare i dati utente.", "error")
+        return redirect(url_for('main.home'))
+        
+    email = id_token_claims.get('preferred_username', '').lower()
+    
+    # 1. Validazione Dominio
+    domain = email.split('@')[-1] if '@' in email else ''
+    if domain not in Config.ALLOWED_DOMAINS:
+        logger.warning(f"Accesso negato: dominio '{domain}' non autorizzato per {email}")
+        return render_template('pages/error.html', 
+                             message="Dominio non autorizzato. Usa l'account JEMORE.",
+                             title="Accesso Negato")
+    
+    # 2. Setup Sessione
+    session['user'] = id_token_claims
+    
+    # 3. RBAC: Controllo se Admin
+    is_admin = email in [a.lower() for a in Config.ADMIN_USERS]
+    session['is_admin'] = is_admin
+    
+    logger.info(f"Utente loggato: {email} | Admin: {is_admin}")
+    flash(f"✅ Benvenuto, {id_token_claims.get('name')}!", "success")
+    
+    return redirect(url_for('main.dashboard'))
+
+
+@main.route('/logout')
+def logout():
+    """Effettua il logout svuotando la sessione."""
+    session.clear()
+    
+    auth_service = AuthService.get_instance()
+    logout_url = auth_service.build_logout_url(url_for('main.home', _external=True))
+    
+    return redirect(logout_url)
+
+
+# --- ROTTE DELL'APPLICAZIONE ---
 
 @main.route('/')
 def home():
@@ -34,45 +102,44 @@ def home():
     Homepage con form di login.
     Se già autenticato, redirect alla dashboard.
     """
+    if session.get('user'):
+        return redirect(url_for('main.dashboard'))
+        
     return render_template('pages/login.html', 
                          title='Formazing - Gestione Formazioni',
                          app_name='Formazing')
 
 
 @main.route('/dashboard')
-@auth.login_required
+@login_required
 async def dashboard():
     """Dashboard principale con formazioni organizzate per status (Flask Async)."""
     try:
         force_refresh = request.args.get('force_refresh') == '1'
+        cache_key = 'dashboard_data_notion'
         
         if force_refresh:
-            logger.info("Richiesto ricaricamento forzato della dashboard")
-            cache.delete('view//dashboard')
-            # Dopo aver pulito la cache, facciamo un redirect all'URL pulito
+            logger.info("Richiesto ricaricamento forzato dei dati da Notion")
+            cache.delete(cache_key)
             return redirect(url_for('main.dashboard'))
         
-        # Prova a recuperare dalla cache
-        cached_data = cache.get('view//dashboard')
-        if cached_data:
-            logger.info("Dashboard caricata dalla cache")
-            return cached_data
+        # Prova a recuperare i DATI dalla cache
+        dashboard_data = cache.get(cache_key)
+        
+        if dashboard_data:
+            logger.info("Dati dashboard recuperati dalla cache")
+        else:
+            logger.info("Dati non in cache. Caricamento da Notion...")
+            training_service = TrainingService.get_instance()
+            # CHIAMATA OTTIMIZZATA: Singola richiesta globale
+            dashboard_data = await training_service.notion_service.get_dashboard_data()
+            # Salva i dati grezzi in cache per 10 minuti
+            cache.set(cache_key, dashboard_data, timeout=600)
 
-        logger.info("Caricamento dashboard da Notion...")
-        
-        # Inizializzazione NotionService (via Singleton)
-        training_service = TrainingService.get_instance()
-        notion_service = training_service.notion_service
-        logger.debug("NotionService recuperato da TrainingService Singleton")
-        
-        # CHIAMATA OTTIMIZZATA: Singola richiesta globale con paginazione gestita
-        dashboard_data = await notion_service.get_dashboard_data()
-        
         formazioni_programmata = dashboard_data.get('Programmata', [])
         formazioni_calendarizzata = dashboard_data.get('Calendarizzata', [])
         formazioni_conclusa = dashboard_data.get('Conclusa', [])
         
-        # Statistiche con null safety
         stats = {
             'programmata': len(formazioni_programmata),
             'calendarizzata': len(formazioni_calendarizzata),
@@ -80,22 +147,13 @@ async def dashboard():
         }
         stats['totale'] = stats['programmata'] + stats['calendarizzata'] + stats['conclusa']
         
-        logger.info(f"Dashboard caricata | Totale: {stats['totale']} | "
-                   f"P: {stats['programmata']} | C: {stats['calendarizzata']} | "
-                   f"F: {stats['conclusa']}")
-        
-        # Usa il nuovo template atomic design
-        response_html = render_template('pages/dashboard.html',
+        # Renderizza il template OGNI VOLTA (così i messaggi flash sono dinamici)
+        return render_template('pages/dashboard.html',
                              formazioni_programmata=formazioni_programmata,
                              formazioni_calendarizzata=formazioni_calendarizzata,
                              formazioni_conclusa=formazioni_conclusa,
                              stats=stats,
                              title='Dashboard - Formazing')
-        
-        # Salva in cache per 10 minuti
-        cache.set('view//dashboard', response_html, timeout=600)
-        
-        return response_html
                              
     except NotionServiceError as e:
         # Errore specifico NotionService
@@ -111,6 +169,7 @@ async def dashboard():
 
 
 @main.route('/guida')
+@login_required
 def guida():
     """Pagina Tutorial e FAQ con dati da YAML."""
     try:
@@ -128,21 +187,27 @@ def guida():
 
 
 @main.route('/analytics')
-@auth.login_required
+@login_required
 async def analytics():
     """Pagina dedicata alle statistiche e grafici delle formazioni."""
     try:
         force_refresh = request.args.get('force_refresh') == '1'
+        cache_key = 'dashboard_data_notion'
         
         if force_refresh:
-            cache.delete('view//dashboard')
+            cache.delete(cache_key)
             return redirect(url_for('main.analytics'))
 
         logger.info("Accesso alla pagina Analytics")
         
-        # Recupera tutti i dati (usa la cache se disponibile)
-        training_service = TrainingService.get_instance()
-        dashboard_data = await training_service.notion_service.get_dashboard_data()
+        # Prova a recuperare i DATI dalla cache
+        dashboard_data = cache.get(cache_key)
+        
+        if not dashboard_data:
+            logger.info("Dati non in cache. Caricamento da Notion per analytics...")
+            training_service = TrainingService.get_instance()
+            dashboard_data = await training_service.notion_service.get_dashboard_data()
+            cache.set(cache_key, dashboard_data, timeout=600)
             
         # Elaborazione tramite il nuovo AnalyticsService
         analytics_service = AnalyticsService()
@@ -188,15 +253,15 @@ def loading():
 # === PAGINE PREVIEW CON FORM CONFERMA ===
 
 @main.route('/preview/notification/<training_id>')
-@auth.login_required
-def preview_notification_page(training_id):
+@admin_required
+async def preview_notification_page(training_id):
     """Pagina preview calendarizzazione con form conferma."""
     try:
         logger.info(f"Preview calendarizzazione richiesta | Training ID: {training_id}")
         
         # Usa Singleton TrainingService
         training_service = TrainingService.get_instance()
-        preview_data = asyncio.run(training_service.generate_preview(training_id))
+        preview_data = await training_service.generate_preview(training_id)
         
         logger.info(f"Preview generata | Formazione: {preview_data['training'].get('Nome', 'N/A')}")
         
@@ -220,15 +285,15 @@ def preview_notification_page(training_id):
 
 
 @main.route('/preview/feedback/<training_id>')
-@auth.login_required
-def preview_feedback_page(training_id):
+@admin_required
+async def preview_feedback_page(training_id):
     """Pagina preview richiesta feedback con form conferma."""
     try:
         logger.info(f"Preview feedback richiesta | Training ID: {training_id}")
         
         # Usa Singleton TrainingService
         training_service = TrainingService.get_instance()
-        preview_data = asyncio.run(training_service.generate_feedback_preview(training_id))
+        preview_data = await training_service.generate_feedback_preview(training_id)
         
         logger.info(f"Preview feedback generata | Formazione: {preview_data['training'].get('Nome', 'N/A')}")
         
@@ -252,8 +317,8 @@ def preview_feedback_page(training_id):
 
 
 @main.route('/confirm/notification/<training_id>', methods=['POST'])
-@auth.login_required
-def confirm_notification(training_id):
+@admin_required
+async def confirm_notification(training_id):
     """Conferma ed esegue calendarizzazione con supporto a testi personalizzati."""
     try:
         logger.info(f"Conferma calendarizzazione | Training ID: {training_id}")
@@ -276,16 +341,16 @@ def confirm_notification(training_id):
 
         # 2. Esecuzione tramite Service
         training_service = TrainingService.get_instance()
-        result = asyncio.run(training_service.send_training_notification(
+        result = await training_service.send_training_notification(
             training_id, 
             custom_messages=custom_messages,
             custom_email_body=custom_email_body
-        ))
+        )
         
         logger.info(f"Calendarizzazione completata | ID: {training_id} | Codice: {result.get('codice_generato', 'N/A')}")
         
-        # Invalida la cache della dashboard
-        cache.delete('view//dashboard')
+        # Invalida la cache dei dati dashboard
+        cache.delete('dashboard_data_notion')
         
         flash('✅ Comunicazione inviata con successo! La formazione è stata calendarizzata.', 'success')
         return redirect(url_for('main.dashboard'))
@@ -301,8 +366,8 @@ def confirm_notification(training_id):
 
 
 @main.route('/confirm/feedback/<training_id>', methods=['POST'])
-@auth.login_required
-def confirm_feedback(training_id):
+@admin_required
+async def confirm_feedback(training_id):
     """Conferma ed esegue invio feedback con supporto a messaggi personalizzati."""
     try:
         logger.info(f"Conferma invio feedback | Training ID: {training_id}")
@@ -318,15 +383,15 @@ def confirm_feedback(training_id):
 
         # 2. Esecuzione tramite Service
         training_service = TrainingService.get_instance()
-        result = asyncio.run(training_service.send_feedback_request(
+        result = await training_service.send_feedback_request(
             training_id,
             custom_messages=custom_messages
-        ))
+        )
         
         logger.info(f"Feedback inviato con successo | ID: {training_id}")
         
-        # Invalida la cache della dashboard
-        cache.delete('view//dashboard')
+        # Invalida la cache dei dati dashboard
+        cache.delete('dashboard_data_notion')
         
         flash('✅ Richiesta feedback inviata con successo! La formazione è stata conclusa.', 'success')
         return redirect(url_for('main.dashboard'))
