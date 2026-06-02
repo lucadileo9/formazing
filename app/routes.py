@@ -260,14 +260,14 @@ def loading():
 
 @main.route('/preview/notification/<training_id>')
 @admin_required
-def preview_notification_page(training_id):
+async def preview_notification_page(training_id):
     """Pagina preview calendarizzazione con form conferma."""
     try:
         logger.info(f"Preview calendarizzazione richiesta | Training ID: {training_id}")
         
         # Usa Singleton TrainingService
         training_service = TrainingService.get_instance()
-        preview_data = asyncio.run(training_service.generate_preview(training_id))
+        preview_data = await training_service.generate_preview(training_id)
         
         logger.info(f"Preview generata | Formazione: {preview_data['training'].get('Nome', 'N/A')}")
         
@@ -292,14 +292,14 @@ def preview_notification_page(training_id):
 
 @main.route('/preview/feedback/<training_id>')
 @admin_required
-def preview_feedback_page(training_id):
+async def preview_feedback_page(training_id):
     """Pagina preview richiesta feedback con form conferma."""
     try:
         logger.info(f"Preview feedback richiesta | Training ID: {training_id}")
         
         # Usa Singleton TrainingService
         training_service = TrainingService.get_instance()
-        preview_data = asyncio.run(training_service.generate_feedback_preview(training_id))
+        preview_data = await training_service.generate_feedback_preview(training_id)
         
         logger.info(f"Preview feedback generata | Formazione: {preview_data['training'].get('Nome', 'N/A')}")
         
@@ -324,7 +324,7 @@ def preview_feedback_page(training_id):
 
 @main.route('/confirm/notification/<training_id>', methods=['POST'])
 @admin_required
-def confirm_notification(training_id):
+async def confirm_notification(training_id):
     """Conferma ed esegue calendarizzazione con supporto a testi personalizzati."""
     try:
         logger.info(f"Conferma calendarizzazione | Training ID: {training_id}")
@@ -347,11 +347,11 @@ def confirm_notification(training_id):
 
         # 2. Esecuzione tramite Service
         training_service = TrainingService.get_instance()
-        result = asyncio.run(training_service.send_training_notification(
+        result = await training_service.send_training_notification(
             training_id, 
             custom_messages=custom_messages,
             custom_email_body=custom_email_body
-        ))
+        )
         
         logger.info(f"Calendarizzazione completata | ID: {training_id} | Codice: {result.get('codice_generato', 'N/A')}")
         
@@ -373,7 +373,7 @@ def confirm_notification(training_id):
 
 @main.route('/confirm/feedback/<training_id>', methods=['POST'])
 @admin_required
-def confirm_feedback(training_id):
+async def confirm_feedback(training_id):
     """Conferma ed esegue invio feedback con supporto a messaggi personalizzati."""
     try:
         logger.info(f"Conferma invio feedback | Training ID: {training_id}")
@@ -389,10 +389,10 @@ def confirm_feedback(training_id):
 
         # 2. Esecuzione tramite Service
         training_service = TrainingService.get_instance()
-        result = asyncio.run(training_service.send_feedback_request(
+        result = await training_service.send_feedback_request(
             training_id,
             custom_messages=custom_messages
-        ))
+        )
         
         logger.info(f"Feedback inviato con successo | ID: {training_id}")
         
