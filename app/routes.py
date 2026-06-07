@@ -15,7 +15,7 @@ from app.services.auth_sso import AuthService, login_required, admin_required
 from app.services.notion import NotionServiceError
 from app.services.training_service import TrainingService, TrainingServiceError
 from app.services.analytics_service import AnalyticsService
-from config import Config
+from config import proteus
 import logging
 import yaml
 import os
@@ -62,7 +62,8 @@ def auth_callback():
     
     # 1. Validazione Dominio
     domain = email.split('@')[-1] if '@' in email else ''
-    if domain not in Config.ALLOWED_DOMAINS:
+    allowed_domains = proteus.get('AUTH.ALLOWED_DOMAINS', 'jemore.it').split(',')
+    if domain not in allowed_domains:
         logger.warning(f"Accesso negato: dominio '{domain}' non autorizzato per {email}")
         return render_template('pages/error.html', 
                              message="Dominio non autorizzato. Usa l'account JEMORE.",
@@ -72,7 +73,8 @@ def auth_callback():
     session['user'] = id_token_claims
     
     # 3. RBAC: Controllo se Admin
-    is_admin = email in [a.lower() for a in Config.ADMIN_USERS]
+    admin_users = proteus.get('AUTH.ADMIN_USERS', '').split(',')
+    is_admin = email in [a.lower().strip() for a in admin_users]
     session['is_admin'] = is_admin
     
     logger.info(f"Utente loggato: {email} | Admin: {is_admin}")
@@ -171,7 +173,8 @@ async def dashboard():
 def guida():
     """Pagina Tutorial e FAQ con dati da YAML."""
     try:
-        faq_path = os.path.join(Config.BASE_DIR, 'config', 'faqs.yaml')
+        base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+        faq_path = os.path.join(base_dir, 'config', 'faqs.yaml')
         with open(faq_path, 'r', encoding='utf-8') as f:
             faq_data = yaml.safe_load(f)
         faqs = faq_data.get('faqs', [])
