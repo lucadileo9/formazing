@@ -171,16 +171,12 @@ async def dashboard():
 @main.route('/guida')
 @login_required
 def guida():
-    """Pagina Tutorial e FAQ con dati da YAML."""
-    try:
-        base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-        faq_path = os.path.join(base_dir, 'config', 'faqs.yaml')
-        with open(faq_path, 'r', encoding='utf-8') as f:
-            faq_data = yaml.safe_load(f)
-        faqs = faq_data.get('faqs', [])
-    except Exception as e:
-        logger.error(f"Errore caricamento FAQ: {e}")
-        faqs = []
+    """Pagina Tutorial e FAQ con dati da Proteus."""
+    # Recuperiamo le FAQ dal namespace 'app.guide' caricato in config.py
+    faqs = proteus.get('app.guide.faqs', [])
+    
+    if not faqs:
+        logger.warning("FAQ non trovate in Proteus namespace 'app.guide.faqs'")
         
     return render_template('pages/guida.html', 
                          title='Guida - Formazing',
