@@ -25,7 +25,7 @@ from typing import Dict, List, Optional
 from app.services.notion import NotionService, NotionServiceError
 from app.services.telegram_service import TelegramService
 from app.services.microsoft import MicrosoftService, MicrosoftServiceError
-from config import Config
+from config import proteus
 
 logger = logging.getLogger(__name__)
 
@@ -75,10 +75,10 @@ class TrainingService:
         # Inizializza servizi dipendenti
         self.notion_service = NotionService()
         self.telegram_service = TelegramService(
-            token=Config.TELEGRAM_BOT_TOKEN,
+            token=proteus.get('TELEGRAM.BOT_TOKEN'),
             notion_service=self.notion_service,
-            groups_config_path=Config.TELEGRAM_GROUPS_CONFIG,
-            templates_config_path=Config.TELEGRAM_TEMPLATES_CONFIG
+            groups_config_path=proteus.get('TELEGRAM.GROUPS_CONFIG', 'config/telegram_groups.json'),
+            templates_config_path=proteus.get('TELEGRAM.TEMPLATES_CONFIG', 'config/message_templates.yaml')
         )
         self.microsoft_service = MicrosoftService()
         
@@ -483,7 +483,8 @@ class TrainingService:
         Esempio: IT-Security_Training-2024-SPRING-01
         """
         # File per il contatore di sequenza
-        counter_file = os.path.join(Config.BASE_DIR, 'sequence_counter.txt')
+        base_dir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        counter_file = os.path.join(base_dir, 'sequence_counter.txt')
 
         # Leggi il contatore corrente, incrementalo e salvalo
         try:
