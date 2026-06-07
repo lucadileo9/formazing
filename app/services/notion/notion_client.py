@@ -9,7 +9,6 @@ Questo modulo gestisce:
 """
 
 import logging
-import os
 from notion_client import Client
 from config import proteus
 
