@@ -210,8 +210,12 @@ async def analytics():
         analytics_service = AnalyticsService()
         analytics_data = analytics_service.get_analytics_data(dashboard_data)
         
+        # Recupero link dashboard esterna (Excel) da Proteus
+        feedback_url = proteus.get('APP.LINKS.FEEDBACK_DASHBOARD')
+        
         return render_template('pages/analytics.html',
                              data=analytics_data,
+                             feedback_dashboard_url=feedback_url,
                              title='Analytics - Formazing')
                              
     except Exception as e:
