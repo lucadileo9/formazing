@@ -78,7 +78,7 @@ def auth_callback():
     session['is_admin'] = is_admin
     
     logger.info(f"Utente loggato: {email} | Admin: {is_admin}")
-    flash(f"✅ Benvenuto, {id_token_claims.get('name')}!", "success")
+    flash(f"Benvenuto, {id_token_claims.get('name')}!", "success")
     
     return redirect(url_for('main.dashboard'))
 
@@ -349,7 +349,7 @@ async def confirm_notification(training_id):
         # Invalida la cache dei dati dashboard
         cache.delete('dashboard_data_notion')
         
-        flash('✅ Comunicazione inviata con successo! La formazione è stata calendarizzata.', 'success')
+        flash('Comunicazione inviata con successo! La formazione è stata calendarizzata.', 'success')
         return redirect(url_for('main.dashboard'))
         
     except TrainingServiceError as e:
@@ -390,7 +390,7 @@ async def confirm_feedback(training_id):
         # Invalida la cache dei dati dashboard
         cache.delete('dashboard_data_notion')
         
-        flash('✅ Richiesta feedback inviata con successo! La formazione è stata conclusa.', 'success')
+        flash('Richiesta feedback inviata con successo! La formazione è stata conclusa.', 'success')
         return redirect(url_for('main.dashboard'))
         
     except TrainingServiceError as e:
