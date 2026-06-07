@@ -14,10 +14,30 @@ from proteus import ConfigurationManager
 # Lo chiamiamo 'proteus' per chiarezza negli import
 proteus = ConfigurationManager.instance()
 
-# Carica il file .env
-env_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '.env')
+# Calcola i path base
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+env_path = os.path.join(BASE_DIR, '.env')
+config_dir = os.path.join(BASE_DIR, 'config')
+
+# 1. Carica variabili d'ambiente (FLASK__, NOTION__, etc.)
 if os.path.exists(env_path):
     proteus.load(env_path)
+
+# 2. Carica configurazioni JSON/YAML in namespace dedicati
+# Grazie alla nuova feature 'namespace', i file piatti vengono isolati correttamente
+configs_to_load = [
+    ('telegram_groups.json', 'telegram.groups'),
+    ('message_templates.yaml', 'telegram.templates'),
+    ('faqs.yaml', 'app.guide'),
+    ('microsoft_emails.json', 'microsoft.emails'),
+    ('calendar_templates.yaml', 'microsoft.templates')
+]
+
+for filename, namespace in configs_to_load:
+    path = os.path.join(config_dir, filename)
+    if os.path.exists(path):
+        proteus.load(path, namespace=namespace)
+        logging.info(f"Configurazione caricata: {filename} -> namespace: {namespace}")
 
 def setup_logging():
     """Configura logging centralizzato usando i valori caricati in Proteus."""
