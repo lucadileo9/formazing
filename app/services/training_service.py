@@ -137,6 +137,8 @@ class TrainingService:
             # Aggiungi codice temporaneamente per preview
             training_preview = training.copy()
             training_preview['Codice'] = generated_code
+            # Aggiungi un link fittizio per la preview
+            training_preview['Link Teams'] = "https://teams.microsoft.com/link/verra/generato/dopo/conferma"
             
             # Genera messaggi preview Telegram per ogni area
             messages_preview = []
@@ -280,7 +282,15 @@ class TrainingService:
             # 5. Recupera formazione aggiornata per invio Telegram
             updated_training = await self.notion_service.get_formazione_by_id(training_id)
             
-            # 6. Invia messaggi Telegram (usa custom_messages se forniti)
+            # Sostituisci il link fittizio nei custom_messages con quello reale
+            if custom_messages:
+                dummy_link = "https://teams.microsoft.com/link/verra/generato/dopo/conferma"
+                real_link = teams_link if teams_link else ""
+                for key in custom_messages:
+                    if custom_messages[key]:
+                        custom_messages[key] = custom_messages[key].replace(dummy_link, real_link)
+            
+            # Invia messaggi Telegram (usa custom_messages se forniti)
             send_results = await self.telegram_service.send_training_notification(updated_training, custom_messages)
             
             result = {
