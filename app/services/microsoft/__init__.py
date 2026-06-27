@@ -142,6 +142,101 @@ class MicrosoftService:
             logger.error(f"Errore imprevisto creazione evento | Error: {e}")
             raise MicrosoftServiceError(f"Unexpected error: {str(e)}")
     
+    async def get_meeting_attendance(self, join_url: str) -> list:
+        """
+        Recupera i partecipanti di una chiamata Teams tramite joinUrl.
+        
+        Fa tre chiamate in sequenza a Microsoft Graph API:
+        1. Cerca il meeting online per recuperare l'ID:
+           GET /users/{userId}/onlineMeetings?$filter=joinWebUrl eq '{joinUrl}'
+        2. Recupera la lista dei report di presenza per quel meeting:
+           GET /users/{userId}/onlineMeetings/{meetingId}/attendanceReports
+        3. Ottiene il dettaglio del report di presenza con i record degli utenti:
+           GET /users/{userId}/onlineMeetings/{meetingId}/attendanceReports/{reportId}?$expand=attendanceRecords
+           
+        Args:
+            join_url: URL della riunione Teams
+            
+        Returns:
+            List[Dict]: Lista di partecipanti, ciascuno con 'name' ed 'email'
+        """
+        if not join_url:
+            logger.warning("join_url vuoto in get_meeting_attendance")
+            return []
+            
+        import urllib.parse
+        try:
+            user_email = self.graph_client.user_email
+            
+            # 1. Trova l'onlineMeetingId usando il joinUrl
+            filter_query = f"joinWebUrl eq '{join_url}'"
+            encoded_filter = urllib.parse.quote(filter_query)
+            endpoint = f"/users/{user_email}/onlineMeetings?$filter={encoded_filter}"
+            
+            logger.debug(f"Ricerca meeting online tramite Graph API | Endpoint: {endpoint}")
+            meetings_response = self.graph_client.make_request(
+                method="GET",
+                endpoint=endpoint
+            )
+            
+            meetings = meetings_response.get('value', [])
+            if not meetings:
+                logger.warning(f"Nessun meeting online trovato per join_url: {join_url}")
+                return []
+                
+            meeting_id = meetings[0].get('id')
+            if not meeting_id:
+                logger.warning("ID meeting nullo nella risposta Graph API")
+                return []
+                
+            # 2. Ottieni i report di presenza
+            reports_endpoint = f"/users/{user_email}/onlineMeetings/{meeting_id}/attendanceReports"
+            logger.debug(f"Recupero attendance reports | Endpoint: {reports_endpoint}")
+            reports_response = self.graph_client.make_request(
+                method="GET",
+                endpoint=reports_endpoint
+            )
+            
+            reports = reports_response.get('value', [])
+            if not reports:
+                logger.warning(f"Nessun report di presenza trovato per meeting_id: {meeting_id}")
+                return []
+                
+            # Prendiamo l'ultimo report generato
+            report_id = reports[-1].get('id')
+            if not report_id:
+                logger.warning("ID report di presenza nullo")
+                return []
+                
+            # 3. Ottieni i dettagli del report espandendo attendanceRecords
+            report_detail_endpoint = f"/users/{user_email}/onlineMeetings/{meeting_id}/attendanceReports/{report_id}?$expand=attendanceRecords"
+            logger.debug(f"Download dettaglio report presenze | Endpoint: {report_detail_endpoint}")
+            report_detail = self.graph_client.make_request(
+                method="GET",
+                endpoint=report_detail_endpoint
+            )
+            
+            records = report_detail.get('attendanceRecords', [])
+            logger.info(f"Recuperati {len(records)} record di presenza per meeting {meeting_id}")
+            
+            participants = []
+            for r in records:
+                identity = r.get('identity', {})
+                user = identity.get('user', {})
+                display_name = user.get('displayName') or r.get('emailAddress') or 'Utente Sconosciuto'
+                email = r.get('emailAddress') or user.get('id', '')
+                
+                participants.append({
+                    'name': display_name,
+                    'email': email
+                })
+                
+            return participants
+            
+        except (GraphClientError, Exception) as e:
+            logger.error(f"Errore recupero presenze Teams per meeting | Error: {e}")
+            raise MicrosoftServiceError(f"Impossibile recuperare il report presenze: {str(e)}")
+
     def _validate_formazione_data(self, formazione_data: Dict) -> None:
         """
         Valida che formazione_data contenga tutti i campi richiesti.
