@@ -100,6 +100,83 @@ class TelegramCommands:
         """
         await self._handle_week_command(update, context, weeks_offset=1, period_name="prossima settimana")
     
+    async def command_presenze(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """
+        Comando /presenze <codice_formazione> o /presenze <id_notion> - Mostra l'elenco dei partecipanti.
+        
+        FUNZIONALITÀ:
+        - Recupera il codice/ID passato come argomento.
+        - Se non fornito, avvisa l'utente di specificare un codice.
+        - Cerca la formazione per codice o per ID.
+        - Se trovata, restituisce la lista dei partecipanti presenti nella colonna 'Partecipanti'.
+        """
+        if self.notion_service is None:
+            await update.message.reply_text("❌ Servizio non disponibile al momento")
+            return
+            
+        if not context.args:
+            await update.message.reply_text(
+                "❌ Specifica un codice formazione.\n"
+                "Uso: <code>/presenze &lt;codice_formazione&gt;</code>\n"
+                "Esempio: <code>/presenze IT-2024-001</code>",
+                parse_mode='HTML'
+            )
+            return
+            
+        target_code = context.args[0].strip()
+        
+        try:
+            # Recupera tutte le formazioni in stato Conclusa
+            formazioni = await self.notion_service.get_formazioni_by_status('Conclusa')
+            
+            target_formazione = None
+            for f in formazioni:
+                code = f.get('Codice', '').strip()
+                if code.lower() == target_code.lower():
+                    target_formazione = f
+                    break
+                if f.get('id') == target_code or f.get('_notion_id') == target_code:
+                    target_formazione = f
+                    break
+            
+            # Se non trovata nelle Concluse, prova la ricerca diretta per ID Notion
+            if not target_formazione and len(target_code) >= 32:
+                try:
+                    target_formazione = await self.notion_service.get_formazione_by_id(target_code)
+                except Exception:
+                    pass
+            
+            if not target_formazione:
+                await update.message.reply_text(
+                    f"❌ Nessuna formazione trovata con il codice o ID: <code>{target_code}</code>",
+                    parse_mode='HTML'
+                )
+                return
+                
+            nome = target_formazione.get('Nome', 'N/A')
+            codice = target_formazione.get('Codice', 'N/A')
+            stato = target_formazione.get('Stato', 'N/A')
+            partecipanti_str = target_formazione.get('Partecipanti', '').strip()
+            
+            message = f"👥 <b>PRESENZE PER LA FORMAZIONE:</b>\n"
+            message += f"📘 <b>Nome:</b> {nome}\n"
+            message += f"🏷 <b>Codice:</b> <code>{codice}</code>\n"
+            message += f"🚦 <b>Stato:</b> {stato}\n\n"
+            
+            if not partecipanti_str:
+                message += "🤷‍♂️ <i>Nessun partecipante registrato o sincronizzazione Teams non ancora eseguita.</i>"
+            else:
+                partecipanti_list = [p.strip() for p in partecipanti_str.split(',') if p.strip()]
+                message += f"📍 <b>Elenco Partecipanti ({len(partecipanti_list)}):</b>\n"
+                for i, p in enumerate(partecipanti_list, 1):
+                    message += f"{i}. {p}\n"
+            
+            await update.message.reply_text(message, parse_mode='HTML')
+            
+        except Exception as e:
+            logger.error(f"Errore nel comando /presenze: {e}", exc_info=True)
+            await update.message.reply_text("❌ Si è verificato un errore nel recupero delle presenze")
+
     async def command_help(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
         Comando /help e /start - Mostra guida comandi disponibili.
