@@ -601,30 +601,44 @@ class TrainingService:
                 raise TrainingServiceError("Impossibile sincronizzare: Link Teams non presente per questa formazione")
                 
             # 2. Recupera presenze da Microsoft Graph
-            participants = await self.microsoft_service.get_meeting_attendance(join_url)
+            attendance_data = await self.microsoft_service.get_meeting_attendance(join_url)
+            
+            # get_meeting_attendance restituisce un dizionario
+            participants = attendance_data.get('participants', [])
+            duration = attendance_data.get('duration', 0.0)
+            total_participants = attendance_data.get('total_participants', 0)
+            
             if not participants:
                 logger.warning(f"Nessun partecipante trovato nel report Teams per {training.get('Nome')}")
-                # Aggiorniamo comunque Notion passando lista vuota
-                await self.notion_service.update_formazione(training_id, {'Partecipanti': []})
+                # Aggiorniamo comunque Notion passando campi vuoti/azzerati
+                await self.notion_service.update_formazione(training_id, {
+                    'Partecipanti': [],
+                    'Numero Partecipanti': 0,
+                    'Durata': 0.0
+                })
                 return {
                     'status': 'success',
                     'count': 0,
-                    'message': 'Nessun partecipante rilevato nel report di Teams. Il campo è stato azzerato.'
+                    'message': 'Nessun partecipante rilevato nel report di Teams. I campi di presenza sono stati azzerati.'
                 }
                 
-            # 3. Salva i partecipanti in Notion
-            # Inviamo la lista di partecipanti (name, email) e crud_operations.py farà il mapping su ID utente
-            success = await self.notion_service.update_formazione(training_id, {'Partecipanti': participants})
+            # 3. Salva i partecipanti, numero partecipanti e durata in Notion
+            updates = {
+                'Partecipanti': participants,
+                'Numero Partecipanti': total_participants,
+                'Durata': duration
+            }
+            success = await self.notion_service.update_formazione(training_id, updates)
             
             if not success:
                 raise TrainingServiceError("Errore durante il salvataggio dei partecipanti su Notion")
                 
-            logger.info(f"Sincronizzazione presenze completata | Rilevati {len(participants)} partecipanti")
+            logger.info(f"Sincronizzazione presenze completata | Rilevati {len(participants)} partecipanti | Durata: {duration}h")
             return {
                 'status': 'success',
                 'count': len(participants),
                 'participants': participants,
-                'message': f"Sincronizzazione completata: {len(participants)} partecipanti trovati."
+                'message': f"Sincronizzazione completata: {len(participants)} partecipanti trovati (Durata: {duration}h)."
             }
             
         except NotionServiceError as e:
