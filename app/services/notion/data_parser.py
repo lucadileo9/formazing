@@ -105,6 +105,8 @@ class NotionDataParser:
             link_teams = self.extract_url_property(properties.get('Link Teams')) or ''
             periodo = self.extract_select_property(properties.get('Periodo')) or ''
             partecipanti = self.extract_people_property(properties.get('Partecipanti')) or ''
+            numero_partecipanti = self.extract_number_property(properties.get('Numero Partecipanti'))
+            durata = self.extract_number_property(properties.get('Durata'))
             
             # Costruzione formazione normalizzata - FORMATO PRONTO ALL'USO
             formazione = {
@@ -117,6 +119,8 @@ class NotionDataParser:
                 'Link Teams': link_teams,
                 'Periodo': periodo,
                 'Partecipanti': partecipanti,
+                'Numero Partecipanti': numero_partecipanti,
+                'Durata': durata,
                 '_notion_id': notion_id         # Mantieni per backward compatibility
             }
             
@@ -220,6 +224,17 @@ class NotionDataParser:
         if not url_prop:
             return ''
         return url_prop.get('url', '') or ''
+
+    def extract_number_property(self, number_prop: Dict) -> Optional[float]:
+        """
+        Estrae valore numerico da property Number di Notion.
+        
+        Struttura Notion:
+        {"number": 15.5}
+        """
+        if not number_prop:
+            return None
+        return number_prop.get('number')
     
     def extract_date_property(self, date_prop: Dict) -> str:
         """
