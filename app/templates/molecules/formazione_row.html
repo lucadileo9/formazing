@@ -85,12 +85,18 @@
                     {% set onclick = "showPreview('" ~ formazione.get('_notion_id', '') ~ "', 'feedback')" %}
                     {% include 'atoms/button.html' %}
                 {% else %}
-                    <!-- Nessuna azione per formazioni Concluse -->
-                    {% set variant = 'btn-jemore-verde' %}
+                    <!-- Azioni per formazioni Concluse: Sincronizzazione Presenze -->
+                    {% if not formazione.get('Partecipanti') %}
+                        {% set variant = 'btn-jemore-blu' %}
+                        {% set text = 'Importa Presenze' %}
+                        {% set icon = 'bi bi-people' %}
+                    {% else %}
+                        {% set variant = 'btn-jemore-verde' %}
+                        {% set text = 'Aggiorna Presenze' %}
+                        {% set icon = 'bi bi-arrow-clockwise' %}
+                    {% endif %}
                     {% set size = 'btn-sm' %}
-                    {% set text = 'Completata' %}
-                    {% set icon = none %}
-                    {% set disabled = true %}
+                    {% set onclick = "triggerSync('" ~ formazione.get('_notion_id', '') ~ "')" %}
                     {% include 'atoms/button.html' %}
                 {% endif %}
             {% else %}
@@ -127,6 +133,17 @@ if (typeof showPreview !== 'function') {
         // Navighiamo alla pagina di loading professionale
         const loadingUrl = `/loading?next=${encodeURIComponent(targetUrl)}&title=${encodeURIComponent(titles[actionType])}&message=${encodeURIComponent(messages[actionType])}`;
         window.location.href = loadingUrl;
+    };
+}
+
+if (typeof triggerSync !== 'function') {
+    window.triggerSync = function(trainingId) {
+        LoadingOverlay.show('Sincronizzazione Presenze', 'Connessione a Microsoft Graph e recupero report presenze da Teams...');
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/sync-attendance/${trainingId}`;
+        document.body.appendChild(form);
+        form.submit();
     };
 }
 </script>
