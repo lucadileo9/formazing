@@ -8,12 +8,18 @@ Questa documentazione spiega come configurare e testare la funzionalità di sinc
 
 Per salvare i partecipanti all'interno della pagina Notion della formazione, è necessario aggiungere una nuova colonna nel database Notion e configurare i permessi del token d'integrazione.
 
-### A. Aggiungere la colonna `Partecipanti`
+### A. Aggiungere le colonne su Notion
 1. Apri il database delle formazioni su Notion.
-2. Clicca su `+` per aggiungere una nuova proprietà.
-3. Configura la colonna come segue:
-   - **Nome**: `Partecipanti`
-   - **Tipo**: `Persone` (People)
+2. Crea le seguenti colonne cliccando su `+`:
+   - **Colonna 1**:
+     - **Nome**: `Partecipanti`
+     - **Tipo**: `Persone` (People)
+   - **Colonna 2**:
+     - **Nome**: `Numero Partecipanti`
+     - **Tipo**: `Numero` (Number) -> Formato: Numero intero (facoltativo)
+   - **Colonna 3**:
+     - **Nome**: `Durata`
+     - **Tipo**: `Numero` (Number) -> Formato: Numero decimale
 
 ### B. Configurare i permessi del Token d'Integrazione
 L'applicazione Formazing deve poter leggere l'elenco degli utenti di Notion per poter associare le email/nomi estratti da Teams agli account Notion reali del workspace.
@@ -71,8 +77,8 @@ Una volta completata la configurazione dei permessi Notion e Microsoft, puoi pro
 ### Passo 1: Verificare la Diagnostica su Formazing
 1. Avvia l'applicazione Formazing (`python run.py`).
 2. Accedi alla dashboard ed esegui i test di diagnostica per assicurarti che la connessione a Notion sia corretta.
-   - Se la colonna `Partecipanti` non è ancora stata creata in Notion, la diagnostica mostrerà un **Warning** spiegando che il campo è mancante, ma non bloccherà l'avvio dell'applicazione.
-   - Se la colonna è stata creata correttamente come tipo `Persone`, il warning scomparirà.
+   - Se le colonne `Partecipanti`, `Numero Partecipanti` o `Durata` non sono ancora state create in Notion, la diagnostica mostrerà dei **Warning** spiegando quali campi sono mancanti e come crearli, senza bloccare l'avvio dell'applicazione.
+   - Una volta create correttamente su Notion con i tipi indicati, i warning scompariranno.
 
 ### Passo 2: Trovare una formazione conclusa
 1. Vai alla scheda delle formazioni **"Concluse"** (la terza scheda della dashboard).
@@ -85,6 +91,9 @@ Una volta completata la configurazione dei permessi Notion e Microsoft, puoi pro
 3. L'applicazione cercherà il meeting, recupererà il report delle presenze Teams e proverà ad abbinare gli indirizzi email o i nomi dei partecipanti con gli utenti Notion del workspace.
 
 ### Passo 4: Controllo e Aggiornamento
-- A sincronizzazione ultimata, la dashboard si ricaricherà mostrando un banner verde di conferma (es: *"Sincronizzazione completata: 4 partecipanti trovati."*).
+- A sincronizzazione ultimata, la dashboard si ricaricherà mostrando un banner verde di conferma (es: *"Sincronizzazione completata: 4 partecipanti trovati (Durata: 1.5h)."*).
 - Il pulsante diventerà verde e cambierà dicitura in **"Aggiorna Presenze"** (con icona di reload), permettendo di rieseguire la sincronizzazione in caso di partecipanti che si sono collegati in ritardo.
-- Apri Notion: la colonna `Partecipanti` mostrerà gli account degli utenti Notion reali abbinati!
+- Apri Notion e controlla la riga corrispondente:
+  - La colonna `Partecipanti` mostrerà gli account degli utenti Notion reali abbinati.
+  - La colonna `Numero Partecipanti` conterrà il numero totale di presenti (es: `4`).
+  - La colonna `Durata` conterrà la durata effettiva calcolata della call (es: `1.5` per 1 ora e 30 minuti).
