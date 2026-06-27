@@ -217,6 +217,34 @@ class NotionDiagnostics:
                     'field': 'Partecipanti',
                     'message': "Il campo 'Partecipanti' (tipo people) non è presente nel database Notion. Si consiglia di crearlo per abilitare il tracciamento dei partecipanti da Teams."
                 })
+                
+            # Verifica campo opzionale Numero Partecipanti (tipo number)
+            if 'Numero Partecipanti' in properties:
+                actual_type = properties['Numero Partecipanti'].get('type')
+                if actual_type != 'number':
+                    result['warnings'].append({
+                        'field': 'Numero Partecipanti',
+                        'message': f"Il campo 'Numero Partecipanti' dovrebbe essere di tipo 'number', trovato '{actual_type}'"
+                    })
+            else:
+                result['warnings'].append({
+                    'field': 'Numero Partecipanti',
+                    'message': "Il campo 'Numero Partecipanti' (tipo number) non è presente nel database Notion. Si consiglia di crearlo per salvare il numero di presenze da Teams."
+                })
+                
+            # Verifica campo opzionale Durata (tipo number)
+            if 'Durata' in properties:
+                actual_type = properties['Durata'].get('type')
+                if actual_type != 'number':
+                    result['warnings'].append({
+                        'field': 'Durata',
+                        'message': f"Il campo 'Durata' dovrebbe essere di tipo 'number', trovato '{actual_type}'"
+                    })
+            else:
+                result['warnings'].append({
+                    'field': 'Durata',
+                    'message': "Il campo 'Durata' (tipo number) non è presente nel database Notion. Si consiglia di crearlo per salvare la durata della formazione."
+                })
             
             if result['valid']:
                 logger.info("Struttura database valida")
