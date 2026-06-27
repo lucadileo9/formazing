@@ -142,9 +142,9 @@ class MicrosoftService:
             logger.error(f"Errore imprevisto creazione evento | Error: {e}")
             raise MicrosoftServiceError(f"Unexpected error: {str(e)}")
     
-    async def get_meeting_attendance(self, join_url: str) -> list:
+    async def get_meeting_attendance(self, join_url: str) -> dict:
         """
-        Recupera i partecipanti di una chiamata Teams tramite joinUrl.
+        Recupera i dettagli di presenza di una chiamata Teams tramite joinUrl.
         
         Fa tre chiamate in sequenza a Microsoft Graph API:
         1. Cerca il meeting online per recuperare l'ID:
@@ -158,11 +158,18 @@ class MicrosoftService:
             join_url: URL della riunione Teams
             
         Returns:
-            List[Dict]: Lista di partecipanti, ciascuno con 'name' ed 'email'
+            Dict: Dizionario contenente:
+                - 'participants': List[Dict] (Lista partecipanti con 'name' ed 'email')
+                - 'duration': float (Durata in ore decimali, arrotondata a 2 decimali)
+                - 'total_participants': int (Numero totale di partecipanti dal report)
         """
         if not join_url:
             logger.warning("join_url vuoto in get_meeting_attendance")
-            return []
+            return {
+                'participants': [],
+                'duration': 0.0,
+                'total_participants': 0
+            }
             
         import urllib.parse
         try:
@@ -182,12 +189,20 @@ class MicrosoftService:
             meetings = meetings_response.get('value', [])
             if not meetings:
                 logger.warning(f"Nessun meeting online trovato per join_url: {join_url}")
-                return []
+                return {
+                    'participants': [],
+                    'duration': 0.0,
+                    'total_participants': 0
+                }
                 
             meeting_id = meetings[0].get('id')
             if not meeting_id:
                 logger.warning("ID meeting nullo nella risposta Graph API")
-                return []
+                return {
+                    'participants': [],
+                    'duration': 0.0,
+                    'total_participants': 0
+                }
                 
             # 2. Ottieni i report di presenza
             reports_endpoint = f"/users/{user_email}/onlineMeetings/{meeting_id}/attendanceReports"
@@ -200,13 +215,21 @@ class MicrosoftService:
             reports = reports_response.get('value', [])
             if not reports:
                 logger.warning(f"Nessun report di presenza trovato per meeting_id: {meeting_id}")
-                return []
+                return {
+                    'participants': [],
+                    'duration': 0.0,
+                    'total_participants': 0
+                }
                 
             # Prendiamo l'ultimo report generato
             report_id = reports[-1].get('id')
             if not report_id:
                 logger.warning("ID report di presenza nullo")
-                return []
+                return {
+                    'participants': [],
+                    'duration': 0.0,
+                    'total_participants': 0
+                }
                 
             # 3. Ottieni i dettagli del report espandendo attendanceRecords
             report_detail_endpoint = f"/users/{user_email}/onlineMeetings/{meeting_id}/attendanceReports/{report_id}?$expand=attendanceRecords"
@@ -216,8 +239,24 @@ class MicrosoftService:
                 endpoint=report_detail_endpoint
             )
             
+            # Calcolo durata
+            meeting_start = report_detail.get('meetingStartDateTime')
+            meeting_end = report_detail.get('meetingEndDateTime')
+            total_participants = report_detail.get('totalParticipantCount', 0)
+            
+            duration_hours = 0.0
+            if meeting_start and meeting_end:
+                try:
+                    from datetime import datetime
+                    start_dt = datetime.fromisoformat(meeting_start.replace('Z', '+00:00'))
+                    end_dt = datetime.fromisoformat(meeting_end.replace('Z', '+00:00'))
+                    duration_seconds = (end_dt - start_dt).total_seconds()
+                    duration_hours = max(0.0, round(duration_seconds / 3600.0, 2))
+                except Exception as ex:
+                    logger.error(f"Errore parsing orari meeting per durata: {ex}")
+            
             records = report_detail.get('attendanceRecords', [])
-            logger.info(f"Recuperati {len(records)} record di presenza per meeting {meeting_id}")
+            logger.info(f"Recuperati {len(records)} record di presenza per meeting {meeting_id} | Durata: {duration_hours}h")
             
             participants = []
             for r in records:
@@ -231,7 +270,14 @@ class MicrosoftService:
                     'email': email
                 })
                 
-            return participants
+            if not total_participants:
+                total_participants = len(participants)
+                
+            return {
+                'participants': participants,
+                'duration': duration_hours,
+                'total_participants': total_participants
+            }
             
         except (GraphClientError, Exception) as e:
             logger.error(f"Errore recupero presenze Teams per meeting | Error: {e}")
