@@ -577,3 +577,62 @@ class TrainingService:
 
         feedback_link = proteus.get('APP.LINKS.FEEDBACK_FORM')
         return feedback_link
+
+    async def sync_attendance_from_teams(self, training_id: str) -> dict:
+        """
+        Recupera il report presenze da Teams e lo salva in Notion per una formazione conclusa.
+        
+        Args:
+            training_id: ID della formazione in Notion
+            
+        Returns:
+            Dict con i risultati del sync
+        """
+        try:
+            logger.info(f"Avvio sincronizzazione presenze Teams | Training ID: {training_id}")
+            
+            # 1. Recupera dati formazione
+            training = await self.notion_service.get_formazione_by_id(training_id)
+            if not training:
+                raise TrainingServiceError(f"Formazione {training_id} non trovata")
+                
+            join_url = training.get('Link Teams')
+            if not join_url:
+                raise TrainingServiceError("Impossibile sincronizzare: Link Teams non presente per questa formazione")
+                
+            # 2. Recupera presenze da Microsoft Graph
+            participants = await self.microsoft_service.get_meeting_attendance(join_url)
+            if not participants:
+                logger.warning(f"Nessun partecipante trovato nel report Teams per {training.get('Nome')}")
+                # Aggiorniamo comunque Notion passando lista vuota
+                await self.notion_service.update_formazione(training_id, {'Partecipanti': []})
+                return {
+                    'status': 'success',
+                    'count': 0,
+                    'message': 'Nessun partecipante rilevato nel report di Teams. Il campo è stato azzerato.'
+                }
+                
+            # 3. Salva i partecipanti in Notion
+            # Inviamo la lista di partecipanti (name, email) e crud_operations.py farà il mapping su ID utente
+            success = await self.notion_service.update_formazione(training_id, {'Partecipanti': participants})
+            
+            if not success:
+                raise TrainingServiceError("Errore durante il salvataggio dei partecipanti su Notion")
+                
+            logger.info(f"Sincronizzazione presenze completata | Rilevati {len(participants)} partecipanti")
+            return {
+                'status': 'success',
+                'count': len(participants),
+                'participants': participants,
+                'message': f"Sincronizzazione completata: {len(participants)} partecipanti trovati."
+            }
+            
+        except NotionServiceError as e:
+            logger.error(f"Errore Notion nel sync presenze {training_id}: {e}")
+            raise TrainingServiceError(f"Errore aggiornamento Notion: {e}")
+        except MicrosoftServiceError as e:
+            logger.error(f"Errore Microsoft Graph nel sync presenze {training_id}: {e}")
+            raise TrainingServiceError(f"Errore Microsoft Graph: {e}")
+        except Exception as e:
+            logger.error(f"Errore imprevisto nel sync presenze {training_id}: {e}", exc_info=True)
+            raise TrainingServiceError(f"Errore sincronizzazione: {e}")
