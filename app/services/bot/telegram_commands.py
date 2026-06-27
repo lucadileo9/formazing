@@ -192,9 +192,10 @@ class TelegramCommands:
 📅 <b>/domani</b> - Mostra le formazioni di domani  
 📅 <b>/settimana</b> - Mostra tutte le formazioni della settimana
 📅 <b>/prossima_settimana</b> - Mostra le formazioni della prossima settimana
+👥 <b>/presenze &lt;codice&gt;</b> - Mostra la lista dei partecipanti per una formazione
 ❓ <b>/help</b> - Mostra questo messaggio
 
-💡 <i>Tutti i comandi mostrano solo le formazioni già calendarizzate con link Teams attivi!</i>
+💡 <i>I comandi del calendario mostrano solo le formazioni già calendarizzate con link Teams attivi!</i>
 
 🔗 <b>Informazioni per ogni formazione:</b>
 • Area di competenza
