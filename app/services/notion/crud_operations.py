@@ -265,6 +265,10 @@ class NotionCrudOperations:
                                 logger.warning(f"Partecipante Teams non trovato in Notion: {attendee.get('name')} ({attendee.get('email')})")
                         
                         properties["Partecipanti"] = {"people": people_list}
+                elif field == 'Numero Partecipanti':
+                    properties["Numero Partecipanti"] = {"number": value}
+                elif field == 'Durata':
+                    properties["Durata"] = {"number": value}
                 # Aggiungi altri campi se necessario
             
             response = self.client.pages.update(
