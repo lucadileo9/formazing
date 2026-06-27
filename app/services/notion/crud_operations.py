@@ -167,7 +167,53 @@ class NotionCrudOperations:
         except Exception as e:
             logger.error(f"Errore generico recupero formazione {notion_id}: {e}")
             return None
-    
+    async def get_workspace_users_mapping(self) -> tuple:
+        """
+        Recupera tutti gli utenti del workspace Notion e restituisce due mappe:
+        1. email -> id (in minuscolo)
+        2. name -> id (in minuscolo)
+        
+        Usa la paginazione per garantire di recuperare tutti gli utenti.
+        """
+        email_to_id = {}
+        name_to_id = {}
+        try:
+            has_more = True
+            next_cursor = None
+            
+            while has_more:
+                params = {}
+                if next_cursor:
+                    params['start_cursor'] = next_cursor
+                
+                # Chiamata sincrona all'API utenti di Notion
+                response = self.client.users.list(**params)
+                
+                for user in response.get('results', []):
+                    user_id = user.get('id')
+                    if not user_id:
+                        continue
+                    
+                    # Mapping per email
+                    email = user.get('person', {}).get('email')
+                    if email:
+                        email_to_id[email.lower().strip()] = user_id
+                    
+                    # Mapping per nome (fallback)
+                    name = user.get('name')
+                    if name:
+                        name_to_id[name.lower().strip()] = user_id
+                
+                has_more = response.get('has_more', False)
+                next_cursor = response.get('next_cursor')
+                
+            logger.info(f"Mappatura utenti Notion completata | Trovati {len(email_to_id)} utenti con email e {len(name_to_id)} con nome")
+            
+        except Exception as e:
+            logger.error(f"Errore nel recupero degli utenti Notion: {e}")
+            
+        return email_to_id, name_to_id
+
     async def update_multiple_fields(self, notion_id: str, updates: Dict) -> bool:
         """
         Aggiorna multipli campi in una singola operazione.
@@ -194,6 +240,31 @@ class NotionCrudOperations:
                     properties["Link"] = {"url": value}
                 elif field == 'Link Teams':
                     properties["Link Teams"] = {"url": value}
+                elif field == 'Partecipanti':
+                    # Se value è già una lista di ID utente pre-formattata
+                    if isinstance(value, list) and all(isinstance(i, dict) and 'id' in i for i in value):
+                        properties["Partecipanti"] = {"people": value}
+                    # Se value è una lista di partecipanti da mappare, es: [{"name": "...", "email": "..."}]
+                    elif isinstance(value, list):
+                        email_map, name_map = await self.get_workspace_users_mapping()
+                        
+                        people_list = []
+                        for attendee in value:
+                            email = attendee.get('email', '').lower().strip()
+                            name = attendee.get('name', '').lower().strip()
+                            
+                            user_id = None
+                            if email and email in email_map:
+                                user_id = email_map[email]
+                            elif name and name in name_map:
+                                user_id = name_map[name]
+                                
+                            if user_id:
+                                people_list.append({"object": "user", "id": user_id})
+                            else:
+                                logger.warning(f"Partecipante Teams non trovato in Notion: {attendee.get('name')} ({attendee.get('email')})")
+                        
+                        properties["Partecipanti"] = {"people": people_list}
                 # Aggiungi altri campi se necessario
             
             response = self.client.pages.update(
